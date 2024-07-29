@@ -1,27 +1,83 @@
-from threading import Thread
+from abc import ABC, abstractmethod
 from typing import Optional
+import pygame
 
 from board import Board
 from direction import Direction
+from command import Command
 from piece import Piece
+from interface import InterfacePygame, Interface
 
 
-class Engine:
+class EngineAbstract(ABC):
 
-    _INSTRUCTIONS = """
-Welcome to the tetris game. You will be prompted for a command at each step.
-The possible commands are:
-    1. 'L'  -> Move piece left
-    2. 'R'  -> Move piece right
-    3. 'D'  -> Move piece down
-    4. 'DD' -> Move piece as far down as possible
-    5. 'U'  -> Rotate piece 90 degrees clockwise
-    6. 'Q'  -> Quit
-    7. 'H'  -> Bring up this message again
-"""
+    @abstractmethod
+    def __init__(self, board: Board):
+        ...
+
+    @abstractmethod
+    def run(self) -> None:
+        ...
+
+
+
+
+def parse_direction(key: pygame.key):
+    if key == pygame.K_LEFT:
+        return Direction.LEFT
+    if key == pygame.K_RIGHT:
+        return Direction.RIGHT
+    if key == pygame.K_DOWN:
+        return Direction.DOWN
+    raise ValueError(f"Unsupported direction key: {key}")
+
+
+class EnginePygame(EngineAbstract):
+    """
+    TODO: not used atm but may need to once implementing clock logic
+    """
     def __init__(self, board: Board):
         self._board = board
-        self._background_thread = Thread(target=self._time_passer)
+        self._active_piece: Optional[Piece] = None
+        self._interface = InterfacePygame(board)
+        self._clock = pygame.time.Clock()
+
+    def run(self) -> None:
+        self._active_piece = self._board.new_piece()
+        self._interface.draw_screen()
+        run = True
+        while run:
+            events = pygame.event.get()
+            print(len(events), events)
+            for event in events:
+                if event.type == pygame.QUIT:
+                    run = False
+                    break
+                if event.type == pygame.KEYDOWN:
+                    key = event.key
+                    if key == pygame.K_UP:
+                        self._active_piece.rotate()
+                    elif key in (pygame.K_LEFT, pygame.K_RIGHT, pygame.K_DOWN):
+                        direction = parse_direction(key)
+                        self._active_piece.shift(direction)
+                        if not self._active_piece.can_shift_down():
+                            # Piece is now frozen in place
+                            self._board.clear_completed_rows()
+                            self._active_piece = self._board.new_piece()
+            self._interface.draw_screen()
+
+
+        pygame.display.quit()
+        quit()
+
+
+class Engine(EngineAbstract):
+    """
+    Generalized engine class used in both versions of the game
+    """
+    def __init__(self, board: Board, interface: Interface):
+        self._board = board
+        self._interface = interface
         self._active_piece: Optional[Piece] = None
 
     def run(self) -> None:
@@ -29,52 +85,40 @@ The possible commands are:
         Runs the game, allowing the user to play
         :return: None
         """
-        self._print_instructions()
+        self._interface.show_instructions()
         self._active_piece = self._board.new_piece()
-        print(self._board)
-        while True:
-            print()
-            entry = input("Input a command [L/R/D/DD/U/Q/H]: ")
-            alphabet = set("LRDUQHlrduqh")
-            alphabet.add("DD")
-            alphabet.add("dd")
-            if entry not in alphabet:
-                print(f"Unsupported input: {entry!r}")
-                continue
-            entry = entry.upper()
-            if entry == "H":
-                self._print_instructions()
-                continue
-            elif entry == "Q":
-                print("Quitting...")
-                return
-            elif entry == "U":
-                self._active_piece.rotate()
-            elif entry == "DD":
-                direction = Direction.DOWN
-                while True:
-                    shifted = self._active_piece.shift(direction)
-                    if not shifted:
-                        break
-                self._active_piece.declare_frozen()
-                self._board.clear_completed_rows()
-                self._active_piece = self._board.new_piece()
-            else:
-                direction = Direction.from_char(entry)
-                shifted = self._active_piece.shift(direction)
-                if not shifted and direction == Direction.DOWN:
-                    self._active_piece.declare_frozen()
+        self._interface.draw_screen()
+        run = True
+        while run:
+            need_to_refresh = False
+            cmds = self._interface.get_input()
+            for cmd in cmds:
+                need_to_refresh = True
+                if cmd == Command.HELP:
+                    self._interface.show_instructions()
+                    need_to_refresh = False
+                    continue
+                elif cmd == Command.QUIT:
+                    need_to_refresh = False
+                    run = False
+                    break
+                elif cmd == Command.ROTATE:
+                    self._active_piece.rotate()
+                elif cmd == Command.MOVE_BOTTOM:
+                    direction = Direction.DOWN
+                    while True:
+                        shifted = self._active_piece.shift(direction)
+                        if not shifted:
+                            break
                     self._board.clear_completed_rows()
                     self._active_piece = self._board.new_piece()
-            print("Board state:")
-            print(self._board)
-
-    def _print_instructions(self):
-        print(self._INSTRUCTIONS)
-
-    def _time_passer(self) -> None:
-        """
-        Runs in background, making sure the active piece falls with every second of passing time
-        :return: None
-        """
-        pass
+                else:
+                    direction = Direction.from_command(cmd)
+                    self._active_piece.shift(direction)
+                    if not self._active_piece.can_shift_down():
+                        # Piece is now frozen in place
+                        self._board.clear_completed_rows()
+                        self._active_piece = self._board.new_piece()
+            if need_to_refresh:
+                self._interface.draw_screen()
+        self._interface.quit()

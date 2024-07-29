@@ -6,6 +6,17 @@ from typing import Tuple, List, Set, Type
 from direction import Direction
 import random
 
+from colours import (
+    BLACK_COLOUR,
+    CYAN_COLOUR,
+    PINK_COLOUR,
+    YELLOW_COLOUR,
+    GREEN_COLOUR,
+    RED_COLOUR,
+    BLUE_COLOUR,
+    PURPLE_COLOUR,
+)
+
 PI_DIV_2 = math.pi / 2
 
 @dataclass
@@ -21,6 +32,7 @@ class MinoPoint(Point):
 
 
 PIECE_COLOURS = [
+    "\033[37m{}\033[00m",  # white, for empty spaces
     "\033[96m{}\033[00m",
     "\033[95m{}\033[00m",
     "\033[93m{}\033[00m",
@@ -28,6 +40,16 @@ PIECE_COLOURS = [
     "\033[91m{}\033[00m",
     "\033[34m{}\033[00m",
     "\033[35m{}\033[00m",
+]
+PIECE_COLOURS_RGB = [
+    BLACK_COLOUR,
+    CYAN_COLOUR,
+    PINK_COLOUR,
+    YELLOW_COLOUR,
+    GREEN_COLOUR,
+    RED_COLOUR,
+    BLUE_COLOUR,
+    PURPLE_COLOUR
 ]
 
 class Piece(ABC):
@@ -53,9 +75,6 @@ class Piece(ABC):
             self._points = [_rotate_90(p, self._centre) for p in self._points]
             self._board.update_piece_location(self, old_points)
 
-    def declare_frozen(self):
-        self._board.declare_frozen(self)
-
     def shift(self, direction: Direction) -> bool:
         with self._board.lock:
             match direction:
@@ -65,7 +84,7 @@ class Piece(ABC):
                 case _: raise ValueError(f"Unsupported direction: {direction!r}")
 
     def _shift_down(self) -> bool:
-        if not self._can_shift_down():
+        if not self.can_shift_down():
             return False
 
         old_points = self._points
@@ -98,7 +117,7 @@ class Piece(ABC):
         return True
 
 
-    def _can_shift_down(self) -> bool:
+    def can_shift_down(self) -> bool:
         for col in self._columns:
             lowest = self._lowest_block_in_col(col)
             if not self._board.space_below(lowest):
@@ -147,7 +166,6 @@ class Piece(ABC):
 
     @property
     @abstractmethod
-
     def colour_code(self) -> int:
         ...
 
