@@ -11,13 +11,13 @@ class Engine:
     _INSTRUCTIONS = """
 Welcome to the tetris game. You will be prompted for a command at each step.
 The possible commands are:
-    1. 'L' -> Move piece left
-    2. 'R' -> Move piece right
-    3. 'D' -> Move piece down
+    1. 'L'  -> Move piece left
+    2. 'R'  -> Move piece right
+    3. 'D'  -> Move piece down
     4. 'DD' -> Move piece as far down as possible
-    5. 'U' -> Rotate piece 90 degrees clockwise
-    6. 'Q' -> Quit
-    7. 'H' -> Bring up this message again
+    5. 'U'  -> Rotate piece 90 degrees clockwise
+    6. 'Q'  -> Quit
+    7. 'H'  -> Bring up this message again
 """
     def __init__(self, board: Board):
         self._board = board
