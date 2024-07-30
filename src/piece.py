@@ -1,6 +1,5 @@
 import math
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from typing import Tuple, List, Set, Type
 
 from direction import Direction
@@ -16,20 +15,9 @@ from colours import (
     BLUE_COLOUR,
     PURPLE_COLOUR,
 )
+from point import Point, MinoPoint
 
 PI_DIV_2 = math.pi / 2
-
-@dataclass
-class Point:
-    x: float
-    y: float
-
-
-@dataclass
-class MinoPoint(Point):
-    x: int
-    y: int
-
 
 PIECE_COLOURS = [
     "\033[37m{}\033[00m",  # white, for empty spaces
@@ -71,70 +59,32 @@ class Piece(ABC):
     def rotate(self):
         # TODO: check if rotated piece can fit on current board!
         with self._board.lock:
-            old_points = self._points
-            self._points = [_rotate_90(p, self._centre) for p in self._points]
-            self._board.update_piece_location(self, old_points)
+            new_points = [_rotate_90(p, self._centre) for p in self._points]
+            if self._board.can_shift(self, new_points):
+                # TODO: add "wall kick" functionality to rotate + shift the piece
+                #  when its going to hit a wall or the stack from rotating
+                old_points = self._points
+                self._points = new_points
+                # No need to update centre here
+                self._board.update_piece_location(self, old_points)
 
     def shift(self, direction: Direction) -> bool:
         with self._board.lock:
-            match direction:
-                case Direction.DOWN: return self._shift_down()
-                case Direction.RIGHT: return self._shift_right()
-                case Direction.LEFT: return self._shift_left()
-                case _: raise ValueError(f"Unsupported direction: {direction!r}")
-
-    def _shift_down(self) -> bool:
-        if not self.can_shift_down():
-            return False
-
-        old_points = self._points
-        new_points = [MinoPoint(p.x, p.y + 1) for p in self._points]
-        self._points = new_points
-        self._centre = Point(self._centre.x, self._centre.y + 1)
-        self._board.update_piece_location(self, old_points)
-        return True
-
-    def _shift_left(self) -> bool:
-        if not self._can_shift_left():
-            return False
-
-        old_points = self._points
-        new_points = [MinoPoint(p.x - 1, p.y) for p in self._points]
-        self._points = new_points
-        self._centre = Point(self._centre.x - 1, self._centre.y)
-        self._board.update_piece_location(self, old_points)
-        return True
-
-    def _shift_right(self) -> bool:
-        if not self._can_shift_right():
-            return False
-
-        old_points = self._points
-        new_points = [MinoPoint(p.x + 1, p.y) for p in self._points]
-        self._points = new_points
-        self._centre = Point(self._centre.x + 1, self._centre.y)
-        self._board.update_piece_location(self, old_points)
-        return True
-
+            new_points = [p.shift(direction) for p in self._points]
+            if self._board.can_shift(self, new_points):
+                old_points = self._points
+                self._points = new_points
+                self._centre = self._centre.shift(direction)
+                self._board.update_piece_location(self, old_points)
+                shifted = True
+            else:
+                shifted = False
+        return shifted
 
     def can_shift_down(self) -> bool:
         for col in self._columns:
             lowest = self._lowest_block_in_col(col)
             if not self._board.space_below(lowest):
-                return False
-        return True
-
-    def _can_shift_right(self) -> bool:
-        for row in self._rows:
-            right_most = self._right_most_block_in_row(row)
-            if not self._board.space_on_right(right_most):
-                return False
-        return True
-
-    def _can_shift_left(self) -> bool:
-        for row in self._rows:
-            left_most = self._left_most_block_in_row(row)
-            if not self._board.space_on_left(left_most):
                 return False
         return True
 
@@ -150,18 +100,6 @@ class Piece(ABC):
         max_y = max(p.y for p in self._points if p.x == col)
         matches = [p for p in self._points if p.x == col and p.y == max_y]
         assert len(matches) == 1, f"How did we not find the lowest piece in col {col!r}?!"
-        return matches[0]
-
-    def _right_most_block_in_row(self, row: int) -> MinoPoint:
-        max_x = max(p.x for p in self._points if p.y == row)
-        matches = [p for p in self._points if p.y == row and p.x == max_x]
-        assert len(matches) == 1, f"How did we not find the right-most piece in row {row!r}?!"
-        return matches[0]
-
-    def _left_most_block_in_row(self, row: int) -> MinoPoint:
-        min_x = min(p.x for p in self._points if p.y == row)
-        matches = [p for p in self._points if p.y == row and p.x == min_x]
-        assert len(matches) == 1, f"How did we not find the left-most piece in row {row!r}?!"
         return matches[0]
 
     @property
@@ -263,7 +201,7 @@ class TPiece(Piece):
         points = [
             MinoPoint(top_left.x, top_left.y),
             MinoPoint(top_left.x - 1, next_row_idx),
-            MinoPoint(top_left.x , next_row_idx),
+            MinoPoint(top_left.x, next_row_idx),
             MinoPoint(top_left.x + 1, next_row_idx),
         ]
         return points, points[2]

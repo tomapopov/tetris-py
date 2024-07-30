@@ -7,12 +7,14 @@ from board import Board
 from colours import BLACK_COLOUR, GREY_COLOUR
 from piece import PIECE_COLOURS_RGB
 from command import Command
+from scorer import Scorer
 
 
 class Interface(ABC):
 
-    def __init__(self, board: Board):
+    def __init__(self, board: Board, scorer: Scorer):
         self._board = board
+        self._scorer = scorer
 
     @abstractmethod
     def get_input(self) -> List[Command]:
@@ -46,6 +48,7 @@ The possible commands are:
 
     def draw_screen(self) -> None:
         print()
+        print(f"SCORE: {self._scorer.score}")
         print("Board state:")
         print(self._board)
         print()
@@ -66,8 +69,8 @@ The possible commands are:
 
 class InterfacePygame(Interface):
 
-    def __init__(self, board):
-        super().__init__(board)
+    def __init__(self, *args):
+        super().__init__(*args)
         # pygame setup
         pygame.init()
         self._block_size = 30
@@ -111,6 +114,7 @@ class InterfacePygame(Interface):
         self._draw_tetriminoes()
         self._draw_grid_lines()
         self._draw_border()
+        self._draw_score()
         pygame.display.update()
 
     def _draw_tetriminoes(self):
@@ -151,6 +155,11 @@ class InterfacePygame(Interface):
         sx = self._grid_top_left_x
         sy = self._grid_top_left_y
         pygame.draw.rect(surface=self._screen, color=(255, 0, 0), rect=(sx, sy, self._play_width, self._play_height), width=5)
+
+    def _draw_score(self) -> None:
+        font = pygame.font.SysFont("comicsans", 40)
+        label = font.render(f"SCORE: {self._scorer.score}", 1, (255, 255, 255))
+        self._screen.blit(label, (self._screen_size[0] / 2 - (label.get_width() / 2), self._grid_top_left_y - self._block_size))
 
     def show_instructions(self) -> None:
         pass  # TODO

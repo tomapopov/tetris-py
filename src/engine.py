@@ -7,6 +7,7 @@ from direction import Direction
 from command import Command
 from piece import Piece
 from interface import InterfacePygame, Interface
+from scorer import Scorer
 
 
 class EngineAbstract(ABC):
@@ -75,10 +76,11 @@ class Engine(EngineAbstract):
     """
     Generalized engine class used in both versions of the game
     """
-    def __init__(self, board: Board, interface: Interface):
+    def __init__(self, board: Board, interface: Interface, scorer: Scorer):
         self._board = board
         self._interface = interface
         self._active_piece: Optional[Piece] = None
+        self._scorer = scorer
 
     def run(self) -> None:
         """
@@ -110,14 +112,18 @@ class Engine(EngineAbstract):
                         shifted = self._active_piece.shift(direction)
                         if not shifted:
                             break
-                    self._board.clear_completed_rows()
+                    lines_cleared = self._board.clear_completed_rows()
+                    if lines_cleared > 0:
+                        self._scorer.add_to_score(lines_cleared, 0)  # level not used right now
                     self._active_piece = self._board.new_piece()
                 else:
                     direction = Direction.from_command(cmd)
                     self._active_piece.shift(direction)
                     if not self._active_piece.can_shift_down():
                         # Piece is now frozen in place
-                        self._board.clear_completed_rows()
+                        lines_cleared = self._board.clear_completed_rows()
+                        if lines_cleared > 0:
+                            self._scorer.add_to_score(lines_cleared, 0)  # level not used right now
                         self._active_piece = self._board.new_piece()
             if need_to_refresh:
                 self._interface.draw_screen()

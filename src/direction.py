@@ -8,6 +8,8 @@ class Direction(Enum):
     RIGHT = 2
     LEFT = 3
 
+
+
     @classmethod
     def from_char(cls, char: str):
         mapping = {

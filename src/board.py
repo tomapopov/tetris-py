@@ -1,8 +1,9 @@
 import random
 from threading import Lock
-from typing import List, Optional
+from typing import List
 
-from piece import MinoPoint, Piece, new_piece_type, PIECE_COLOURS
+from piece import Piece, new_piece_type, PIECE_COLOURS
+from point import MinoPoint
 
 MARKER = "X"
 Grid = List[List[int]]
@@ -27,14 +28,15 @@ class Board:
         piece = piece_type(self, top_left)
         return piece
 
-    def clear_completed_rows(self) -> None:
+    def clear_completed_rows(self) -> int:
+        removed = 0
         with self.lock:
-            removed = 0
             for i in range(self._height - 1, 0 + self._padding, -1):
                 if self._full_row(i):
                     self._remove_row(i)
                     removed += 1
             self._grid = self._new_rows(removed, self._width) + self._grid
+        return removed
 
     def _full_row(self, idx: int) -> bool:
         row = self._grid[idx]
@@ -49,32 +51,42 @@ class Board:
 
     def update_piece_location(self, piece: Piece, old_points: List[MinoPoint]) -> None:
         for p in old_points:
-            self._grid[p.y][p.x] = 0
+            self._set_at_point(p, 0)
         self.add_piece(piece)
+
+    def _remove_piece(self, piece: Piece) -> None:
+        for p in piece.points:
+            assert self._at_point(p) == piece.colour_code
+        for p in piece.points:
+            self._set_at_point(p, 0)
+
+    def _at_point(self, p: MinoPoint) -> int:
+        return self._grid[p.y][p.x]
+
+    def _set_at_point(self, p: MinoPoint, val: int) -> None:
+        self._grid[p.y][p.x] = val
+
+    def can_shift(self, piece: Piece, new_points: List[MinoPoint]) -> bool:
+        self._remove_piece(piece)
+        res = True
+        for p in new_points:
+            if self._point_outside_grid(p) or self._at_point(p) > 0:
+                res = False
+                break
+        self.add_piece(piece)
+        return res
 
     def add_piece(self, piece: Piece) -> None:
         for p in piece.points:
-            assert self._grid[p.y][p.x] == 0
+            assert self._at_point(p) == 0
         for p in piece.points:
-            self._grid[p.y][p.x] = piece.colour_code
+            self._set_at_point(p, piece.colour_code)
 
     def space_below(self, point: MinoPoint) -> bool:
         below_y = point.y + 1
         if self._point_outside_grid(MinoPoint(point.x, below_y)):
             return False
         return self._grid[below_y][point.x] == 0
-
-    def space_on_right(self, point: MinoPoint) -> bool:
-        right_x = point.x + 1
-        if self._point_outside_grid(MinoPoint(right_x, point.y)):
-            return False
-        return self._grid[point.y][right_x] == 0
-
-    def space_on_left(self, point: MinoPoint) -> bool:
-        left_x = point.x - 1
-        if self._point_outside_grid(MinoPoint(left_x, point.y)):
-            return False
-        return self._grid[point.y][left_x] == 0
 
     def _point_outside_grid(self, point: MinoPoint) -> bool:
         return (not (0 - self._padding <= point.y < self._height)) or (not (0 <= point.x < self._width))
@@ -90,10 +102,6 @@ class Board:
             res.append(" ".join(row_res))
         pretty_grid = "\n".join(res)
         return str(pretty_grid)
-
-    @staticmethod
-    def _red_string(skk):
-        return "\033[91m{}\033[00m".format(skk)
 
     @property
     def lock(self) -> Lock:
