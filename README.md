@@ -1,11 +1,11 @@
 # Tetris Game
 
-This game has 2 modes:
- - Full mode - via GUI
- - Basic mode - via CLI
+This game has 2 versions:
+ - Full version using a GUI with all the features.
+ - Basic version via CLI with some reduced functionality, like no "falling" logic.
 
 ### Dependencies
-The GUI mode uses the `pygame` library, which is listed in `requirements.txt`.
+The GUI version uses the `pygame` library, which is listed in `requirements.txt`.
 
 ### Running the game
 First you'll need to: `cd src/`
