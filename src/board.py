@@ -5,7 +5,6 @@ from typing import List, Type
 from piece import Piece, new_piece_type, PIECE_COLOURS_ANSI
 from point import MinoPoint
 
-MARKER = "X"
 Grid = List[List[int]]
 _ROW_PADDING = 2
 
