@@ -1,13 +1,13 @@
 from abc import ABC, abstractmethod
-from typing import Optional, Type
+from typing import Optional
 import pygame
 
-from board import Board
-from direction import Direction
-from command import Command
-from piece import Piece, PieceGenerator
-from interface import InterfacePygame, Interface, InterfaceCLI
-from scorer import Scorer
+from src.board import Board
+from src.direction import Direction
+from src.command import Command
+from src.piece import Piece, PieceGenerator
+from src.interface import InterfacePygame, Interface, InterfaceCLI
+from src.scorer import Scorer
 
 _LOOP_SLEEP_TIME_MS = 20
 

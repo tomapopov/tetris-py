@@ -8,11 +8,11 @@ This game has 2 versions:
 The GUI version uses the `pygame` library, which is listed in `requirements.txt`.
 
 ### Running the game
-First you'll need to: `cd src/`
+The game can be launched via the convenient bash scripts:
 
-Then, for the GUI version, run:
-`python main.py`
+For the GUI version, run:
+`./run`
 
 For the CLI version, run:
-`python main_cli.py`
+`./run_cli`
 

@@ -2,8 +2,8 @@ import random
 from threading import Lock
 from typing import List, Type
 
-from piece import Piece, new_piece_type, PIECE_COLOURS_ANSI
-from point import MinoPoint
+from src.piece import Piece, new_piece_type, PIECE_COLOURS_ANSI
+from src.point import MinoPoint
 
 Grid = List[List[int]]
 _ROW_PADDING = 2

@@ -1,11 +1,12 @@
 import math
 from abc import ABC, abstractmethod
 from typing import Tuple, List, Set, Type
-
-from direction import Direction
 import random
 
-from colours import (
+from src.direction import Direction
+
+
+from src.colours import (
     BLACK_COLOUR,
     CYAN_COLOUR,
     PINK_COLOUR,
@@ -15,7 +16,7 @@ from colours import (
     BLUE_COLOUR,
     PURPLE_COLOUR,
 )
-from point import Point, MinoPoint
+from src.point import Point, MinoPoint
 
 PI_DIV_2 = math.pi / 2
 

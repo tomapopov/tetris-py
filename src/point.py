@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from direction import Direction
+from src.direction import Direction
 
 _DIRECTION_SHIFT = {
     Direction.DOWN: (0, 1),

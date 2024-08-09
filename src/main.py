@@ -1,8 +1,8 @@
-from board import Board
-from engine import EnginePygame
-from scorer import SimpleScorer
+from src.board import Board
+from src.engine import EnginePygame
+from src.scorer import SimpleScorer
 from src.piece import PieceGenerator
-from utils import parse_args
+from src.utils import parse_args
 
 
 def main():
