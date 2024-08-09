@@ -12,7 +12,12 @@ class Point:
     x: float
     y: float
 
-    def shift(self, direction: Direction):
+    def shift(self, direction: Direction) -> "Point":
+        """
+        Creates a new point object with coordinates equivalent to shifting this piece
+        :param direction: the direction of movement
+        :return: the new point
+        """
         cls = type(self)
         x_shift, y_shift = _DIRECTION_SHIFT[direction]
         return cls(self.x + x_shift, self.y + y_shift)

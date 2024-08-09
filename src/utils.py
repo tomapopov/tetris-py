@@ -2,6 +2,10 @@ import argparse
 
 
 def parse_args() -> argparse.Namespace:
+    """
+    Parses the command-line args of the game
+    :return:
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--board_height",

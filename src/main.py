@@ -1,7 +1,7 @@
 from board import Board
-from engine import Engine
-from interface import InterfacePygame
+from engine import EnginePygame
 from scorer import SimpleScorer
+from src.piece import PieceGenerator
 from utils import parse_args
 
 
@@ -9,8 +9,8 @@ def main():
     parsed = parse_args()
     board = Board(parsed.board_height, parsed.board_width)
     scorer = SimpleScorer()
-    interface = InterfacePygame(board, scorer)
-    engine = Engine(board, interface, scorer)
+    piece_generator = PieceGenerator()
+    engine = EnginePygame(board, scorer, piece_generator)
     engine.run()
 
 

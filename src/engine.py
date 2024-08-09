@@ -1,26 +1,26 @@
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, Type
 import pygame
 
 from board import Board
 from direction import Direction
 from command import Command
-from piece import Piece
-from interface import InterfacePygame, Interface
+from piece import Piece, PieceGenerator
+from interface import InterfacePygame, Interface, InterfaceCLI
 from scorer import Scorer
+
+_LOOP_SLEEP_TIME_MS = 20
 
 
 class EngineAbstract(ABC):
 
     @abstractmethod
-    def __init__(self, board: Board):
+    def __init__(self, board: Board, scorer: Scorer, piece_generator: PieceGenerator):
         ...
 
     @abstractmethod
     def run(self) -> None:
         ...
-
-
 
 
 def parse_direction(key: pygame.key):
@@ -33,51 +33,13 @@ def parse_direction(key: pygame.key):
     raise ValueError(f"Unsupported direction key: {key}")
 
 
-class EnginePygame(EngineAbstract):
-    """
-    TODO: not used atm but may need to once implementing clock logic
-    """
-    def __init__(self, board: Board):
-        self._board = board
-        self._active_piece: Optional[Piece] = None
-        self._interface = InterfacePygame(board)
-        self._clock = pygame.time.Clock()
-
-    def run(self) -> None:
-        self._active_piece = self._board.new_piece()
-        self._interface.draw_screen()
-        run = True
-        while run:
-            events = pygame.event.get()
-            print(len(events), events)
-            for event in events:
-                if event.type == pygame.QUIT:
-                    run = False
-                    break
-                if event.type == pygame.KEYDOWN:
-                    key = event.key
-                    if key == pygame.K_UP:
-                        self._active_piece.rotate()
-                    elif key in (pygame.K_LEFT, pygame.K_RIGHT, pygame.K_DOWN):
-                        direction = parse_direction(key)
-                        self._active_piece.shift(direction)
-                        if not self._active_piece.can_shift_down():
-                            # Piece is now frozen in place
-                            self._board.clear_completed_rows()
-                            self._active_piece = self._board.new_piece()
-            self._interface.draw_screen()
-
-
-        pygame.display.quit()
-        quit()
-
-
 class Engine(EngineAbstract):
     """
     Generalized engine class used in both versions of the game
     """
-    def __init__(self, board: Board, interface: Interface, scorer: Scorer):
+    def __init__(self, board: Board, scorer: Scorer, interface: Interface, piece_generator: PieceGenerator):
         self._board = board
+        self._piece_generator = piece_generator
         self._interface = interface
         self._active_piece: Optional[Piece] = None
         self._scorer = scorer
@@ -88,8 +50,37 @@ class Engine(EngineAbstract):
         :return: None
         """
         self._interface.show_instructions()
-        self._active_piece = self._board.new_piece()
+        self._run_main_loop()
+        self._wait(500)
+        self._run_game_over_loop()
+        self._interface.quit()
+
+    def _run_game_over_loop(self):
+        """
+        Shows the 'game over' screen until the player exits
+        :return: None
+        """
+        self._interface.draw_game_over()
+        show_game_over = True
+        while show_game_over:
+            cmds = self._interface.get_input()
+            for cmd in cmds:
+                if cmd == Command.QUIT:
+                    show_game_over = False
+                    break
+            self._wait(_LOOP_SLEEP_TIME_MS)
+
+    def _run_main_loop(self) -> None:
+        """
+        Runs the main gameplay logic, allowing the user to play until they lose
+        :return: None
+        """
+        self._new_active_piece()
         self._interface.draw_screen()
+
+        # Add timed downwards movement for passage of time
+        self._start_downward_movement()
+
         run = True
         while run:
             need_to_refresh = False
@@ -115,7 +106,12 @@ class Engine(EngineAbstract):
                     lines_cleared = self._board.clear_completed_rows()
                     if lines_cleared > 0:
                         self._scorer.add_to_score(lines_cleared, 0)  # level not used right now
-                    self._active_piece = self._board.new_piece()
+                    if self._board.reached_top_row():
+                        # Player has lost
+                        run = False
+                        break
+                    self._new_active_piece()
+                    break
                 else:
                     direction = Direction.from_command(cmd)
                     self._active_piece.shift(direction)
@@ -124,7 +120,82 @@ class Engine(EngineAbstract):
                         lines_cleared = self._board.clear_completed_rows()
                         if lines_cleared > 0:
                             self._scorer.add_to_score(lines_cleared, 0)  # level not used right now
-                        self._active_piece = self._board.new_piece()
+                        if self._board.reached_top_row():
+                            # Player has lost
+                            run = False
+                            break
+                        self._new_active_piece()
+                        break
+
             if need_to_refresh:
                 self._interface.draw_screen()
-        self._interface.quit()
+
+            # Pause to share CPU - not sure if/how much it's needed, haven't
+            # looked into the CPU loads yet...
+            self._wait(_LOOP_SLEEP_TIME_MS)
+
+    def _new_active_piece(self) -> None:
+        """
+        Updates the active piece, used when the current piece hits
+        the bottom or the stack, and we need a new piece
+        :return: None
+        """
+        self._active_piece = self._board.new_piece(self._piece_generator.generate_new_piece_type())
+
+    @abstractmethod
+    def _start_downward_movement(self) -> None:
+        """
+        Starts the automatic downward movement of pieces, so they fall as time passes
+        :return: None
+        """
+        ...
+
+    @abstractmethod
+    def _wait(self, time_ms: int) -> None:
+        """
+        Pauses for a given number of milliseconds
+        :param time_ms: time to sleep/wait in millis
+        :return: None
+        """
+        ...
+
+class EnginePygame(Engine):
+
+    def __init__(self, board: Board, scorer: Scorer, piece_generator: PieceGenerator):
+        super().__init__(board, scorer, InterfacePygame(board, scorer, piece_generator), piece_generator)
+
+    def _start_downward_movement(self) -> None:
+        """
+        Starts the automatic downward movement of pieces, so they fall as time passes
+        :return: None
+        """
+        pygame.time.set_timer(pygame.event.Event(pygame.KEYDOWN, {"key": pygame.K_DOWN}), 750)
+
+    def _wait(self, time_ms: int) -> None:
+        """
+        Pauses for a given number of milliseconds
+        :param time_ms: time to sleep/wait in millis
+        :return: None
+        """
+        pygame.time.wait(time_ms)
+
+
+class EngineCLI(Engine):
+
+    def __init__(self, board: Board, scorer: Scorer, piece_generator: PieceGenerator):
+        super().__init__(board, scorer, InterfaceCLI(board, scorer, piece_generator), piece_generator)
+
+    def _start_downward_movement(self) -> None:
+        """
+        Starts the automatic downward movement of pieces, so they fall as time passes
+        :return: None
+        """
+        pass
+
+    def _wait(self, time_ms: int) -> None:
+        """
+        Pauses for a given number of milliseconds
+        :param time_ms: time to sleep/wait in millis
+        :return: None
+        """
+        pass

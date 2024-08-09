@@ -19,7 +19,7 @@ from point import Point, MinoPoint
 
 PI_DIV_2 = math.pi / 2
 
-PIECE_COLOURS = [
+PIECE_COLOURS_ANSI = [
     "\033[37m{}\033[00m",  # white, for empty spaces
     "\033[96m{}\033[00m",
     "\033[95m{}\033[00m",
@@ -29,6 +29,7 @@ PIECE_COLOURS = [
     "\033[34m{}\033[00m",
     "\033[35m{}\033[00m",
 ]
+
 PIECE_COLOURS_RGB = [
     BLACK_COLOUR,
     CYAN_COLOUR,
@@ -40,9 +41,10 @@ PIECE_COLOURS_RGB = [
     PURPLE_COLOUR
 ]
 
+
 class Piece(ABC):
     def __init__(self, board: "Board", top_left: MinoPoint):
-        ps, c = self._init_state(top_left)
+        ps, c = self.init_state(top_left)
         self._points: List[MinoPoint] = ps
         self._centre: Point = c
         self._board = board
@@ -50,14 +52,26 @@ class Piece(ABC):
 
     @property
     def points(self) -> List[MinoPoint]:
+        """
+        :return: List of coordinates for the blocks which make up the piece
+        """
         return self._points
 
+    @classmethod
     @abstractmethod
-    def _init_state(self, top_left: MinoPoint) -> Tuple[List[MinoPoint], Point]:
+    def init_state(cls, top_left: MinoPoint) -> Tuple[List[MinoPoint], Point]:
+        """
+        Initializes the state
+        :param top_left: the top left block coordinate
+        :return: Tuple of: list of block coordinates for the piece, and the rotational centre
+        """
         pass
 
-    def rotate(self):
-        # TODO: check if rotated piece can fit on current board!
+    def rotate(self) -> None:
+        """
+        Rotates the piece on the board, if possible
+        :return: None
+        """
         with self._board.lock:
             new_points = [_rotate_90(p, self._centre) for p in self._points]
             if self._board.can_shift(self, new_points):
@@ -69,6 +83,11 @@ class Piece(ABC):
                 self._board.update_piece_location(self, old_points)
 
     def shift(self, direction: Direction) -> bool:
+        """
+        Shifts the piece, if possible, in the given direction.
+        :param direction: Direction
+        :return: True if the piece moved successfully, False otherwise
+        """
         with self._board.lock:
             new_points = [p.shift(direction) for p in self._points]
             if self._board.can_shift(self, new_points):
@@ -82,6 +101,10 @@ class Piece(ABC):
         return shifted
 
     def can_shift_down(self) -> bool:
+        """
+        Checks if the piece can move down
+        :return: True if it can shift downwards, False if not
+        """
         for col in self._columns:
             lowest = self._lowest_block_in_col(col)
             if not self._board.space_below(lowest):
@@ -90,30 +113,37 @@ class Piece(ABC):
 
     @property
     def _columns(self) -> Set[int]:
+        """
+        The columns taken up by all the blocks that make up the piece
+        :return: set of integer columns
+        """
         return set(p.x for p in self._points)
 
     @property
     def _rows(self) -> Set[int]:
+        """
+        The rows taken up by all the blocks that make up the piece
+        :return: set of integer rows
+        """
         return set(p.y for p in self._points)
 
     def _lowest_block_in_col(self, col: int) -> MinoPoint:
+        """
+        Finds the lowest block in a column, used to check ability to move down
+        :param col: column value
+        :return: coordinate of the lowest block in the given column for this piece
+        """
         max_y = max(p.y for p in self._points if p.x == col)
         matches = [p for p in self._points if p.x == col and p.y == max_y]
         assert len(matches) == 1, f"How did we not find the lowest piece in col {col!r}?!"
         return matches[0]
 
-    @property
-    @abstractmethod
-    def colour_code(self) -> int:
-        ...
 
 class IPiece(Piece):
+    colour_code: int = 1
 
-    @property
-    def colour_code(self) -> int:
-        return 1
-
-    def _init_state(self, top_left: MinoPoint):
+    @classmethod
+    def init_state(self, top_left: MinoPoint):
         points = [
             MinoPoint(top_left.x, top_left.y),
             MinoPoint(top_left.x + 1, top_left.y),
@@ -124,12 +154,10 @@ class IPiece(Piece):
 
 
 class JPiece(Piece):
+    colour_code: int = 2
 
-    @property
-    def colour_code(self) -> int:
-        return 2
-
-    def _init_state(self, top_left: MinoPoint):
+    @classmethod
+    def init_state(cls, top_left: MinoPoint):
         next_row_idx = top_left.y + 1
         points = [
             MinoPoint(top_left.x, top_left.y),
@@ -141,12 +169,10 @@ class JPiece(Piece):
 
 
 class LPiece(Piece):
+    colour_code: int = 3
 
-    @property
-    def colour_code(self) -> int:
-        return 3
-
-    def _init_state(self, top_left: MinoPoint):
+    @classmethod
+    def init_state(cls, top_left: MinoPoint):
         next_row_idx = top_left.y + 1
         points = [
             MinoPoint(top_left.x, top_left.y),
@@ -158,12 +184,10 @@ class LPiece(Piece):
 
 
 class OPiece(Piece):
+    colour_code: int = 4
 
-    @property
-    def colour_code(self) -> int:
-        return 4
-
-    def _init_state(self, top_left: MinoPoint):
+    @classmethod
+    def init_state(cls, top_left: MinoPoint):
         points = [
             MinoPoint(top_left.x, top_left.y),
             MinoPoint(top_left.x + 1, top_left.y),
@@ -175,12 +199,10 @@ class OPiece(Piece):
 
 
 class SPiece(Piece):
+    colour_code: int = 5
 
-    @property
-    def colour_code(self) -> int:
-        return 5
-
-    def _init_state(self, top_left: MinoPoint):
+    @classmethod
+    def init_state(cls, top_left: MinoPoint):
         points = [
             MinoPoint(top_left.x, top_left.y),
             MinoPoint(top_left.x + 1, top_left.y),
@@ -191,12 +213,11 @@ class SPiece(Piece):
 
 
 class TPiece(Piece):
+    colour_code: int = 6
 
-    @property
-    def colour_code(self) -> int:
-        return 6
 
-    def _init_state(self, top_left: MinoPoint):
+    @classmethod
+    def init_state(cls, top_left: MinoPoint):
         next_row_idx = top_left.y + 1
         points = [
             MinoPoint(top_left.x, top_left.y),
@@ -208,12 +229,10 @@ class TPiece(Piece):
 
 
 class ZPiece(Piece):
+    colour_code: int = 7
 
-    @property
-    def colour_code(self) -> int:
-        return 7
-
-    def _init_state(self, top_left: MinoPoint):
+    @classmethod
+    def init_state(cls, top_left: MinoPoint):
         points = [
             MinoPoint(top_left.x, top_left.y),
             MinoPoint(top_left.x + 1, top_left.y),
@@ -255,3 +274,28 @@ _SHAPE_POSSIBILITIES = [IPiece, ZPiece, LPiece, JPiece, SPiece, TPiece, OPiece]
 
 def new_piece_type() -> Type[Piece]:
     return random.choice(_SHAPE_POSSIBILITIES)
+
+class PieceGenerator:
+    """
+    Simple class used to generate and show what the next piece shape will be
+    """
+
+    def __init__(self):
+        self._next_piece_type = new_piece_type()
+
+    @property
+    def next_piece_type(self) -> Type[Piece]:
+        """
+        The next piece type after the current
+        :return: The type of piece
+        """
+        return self._next_piece_type
+
+    def generate_new_piece_type(self) -> Type[Piece]:
+        """
+        Generates a new next piece shape
+        :return: The type of piece
+        """
+        ret = self._next_piece_type
+        self._next_piece_type = new_piece_type()
+        return ret
