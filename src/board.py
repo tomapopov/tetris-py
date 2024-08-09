@@ -8,6 +8,8 @@ from point import MinoPoint
 MARKER = "X"
 Grid = List[List[int]]
 _ROW_PADDING = 2
+
+
 class Board:
 
     def __init__(self, height: int = 20, width: int = 10):
