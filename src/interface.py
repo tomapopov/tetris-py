@@ -4,7 +4,7 @@ from typing import List
 import pygame
 
 from src.board import Board
-from src.colours import BLACK_COLOUR, GREY_COLOUR, RED_COLOUR, WHITE_COLOUR
+from src.colours import BLACK_COLOUR, GREY_COLOUR, RED_COLOUR, WHITE_COLOUR, ORANGE_COLOUR
 from src.piece import PIECE_COLOURS_RGB, PieceGenerator
 from src.command import Command
 from src.scorer import Scorer
@@ -54,6 +54,14 @@ class Interface(ABC):
     def quit(self) -> None:
         """
         Ends the session
+        :return: None
+        """
+        ...
+
+    @abstractmethod
+    def show_paused(self) -> None:
+        """
+        Shows the user that the game is paused
         :return: None
         """
         ...
@@ -117,6 +125,13 @@ The possible commands are:
         :return: None
         """
         print("Quitting...")
+
+    def show_paused(self) -> None:
+        """
+        Shows the user that the game is paused
+        :return: None
+        """
+        pass
 
 
 class InterfacePygame(Interface):
@@ -206,6 +221,18 @@ class InterfacePygame(Interface):
         """
         pygame.display.quit()
 
+    def show_paused(self) -> None:
+        """
+        Shows the user that the game is paused
+        :return: None
+        """
+        font = pygame.font.SysFont("comicsans", 40)
+        label = font.render("PAUSED", 1, ORANGE_COLOUR)
+        label_top_left_x = self._screen_width * 0.75 - label.get_width() / 2
+        label_top_left_y = self._screen_height * 0.5
+        self._screen.blit(label, (label_top_left_x, label_top_left_y))
+        pygame.display.update()
+
     def _draw_title(self) -> None:
         self._screen.blit(
             self._title_label,
@@ -276,14 +303,14 @@ class InterfacePygame(Interface):
 
     def _draw_score(self) -> None:
         font = pygame.font.SysFont("comicsans", 40)
-        label = font.render(f"SCORE: {self._scorer.score}", 1, (255, 255, 255))
+        label = font.render(f"SCORE: {self._scorer.score}", 1, WHITE_COLOUR)
         score_top_left_x = (self._grid_top_left_x + self._grid_width / 2) - label.get_width() / 2
         score_top_left_y = self._grid_top_left_y - self._block_size
         self._screen.blit(label, (score_top_left_x, score_top_left_y))
 
     def _draw_next_piece(self) -> None:
         font = pygame.font.SysFont("comicsans", 40)
-        label = font.render("NEXT PIECE", 1, (255, 255, 255))
+        label = font.render("NEXT PIECE", 1, WHITE_COLOUR)
         label_top_left_x = self._screen_width * 0.75 - label.get_width() / 2
         label_top_left_y = self._screen_height * 0.3
 

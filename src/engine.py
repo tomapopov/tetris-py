@@ -95,6 +95,8 @@ class Engine(EngineAbstract):
                     need_to_refresh = False
                     run = False
                     break
+                elif cmd == Command.PAUSE:
+                    self._pause()
                 elif cmd == Command.ROTATE:
                     self._active_piece.rotate()
                 elif cmd == Command.MOVE_BOTTOM:
@@ -159,6 +161,17 @@ class Engine(EngineAbstract):
         """
         ...
 
+    @abstractmethod
+    def _pause(self) -> None:
+        """
+        Pauses the game until the pause command is seen again to unpause
+        :return: None
+        """
+        ...
+
+
+
+
 class EnginePygame(Engine):
 
     def __init__(self, board: Board, scorer: Scorer, piece_generator: PieceGenerator):
@@ -179,6 +192,19 @@ class EnginePygame(Engine):
         """
         pygame.time.wait(time_ms)
 
+    def _pause(self) -> None:
+        """
+        Pauses the game until the pause command is seen again to unpause
+        :return: None
+       """
+        self._interface.show_paused()
+        while True:
+            cmds = self._interface.get_input()
+            for cmd in cmds:
+                if cmd == Command.PAUSE:
+                    return
+            pygame.time.wait(50)
+
 
 class EngineCLI(Engine):
 
@@ -196,6 +222,13 @@ class EngineCLI(Engine):
         """
         Pauses for a given number of milliseconds
         :param time_ms: time to sleep/wait in millis
+        :return: None
+        """
+        pass
+
+    def _pause(self) -> None:
+        """
+        Pauses the game until the pause command is seen again to unpause
         :return: None
         """
         pass

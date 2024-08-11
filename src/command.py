@@ -11,6 +11,7 @@ class Command(Enum):
     ROTATE = 5
     QUIT = 6
     HELP = 7
+    PAUSE = 8
 
     @classmethod
     def from_char(cls, char: str):
@@ -25,6 +26,7 @@ class Command(Enum):
             "U": cls.ROTATE,
             "Q": cls.QUIT,
             "H": cls.HELP,
+            "P": cls.PAUSE,
         }
         if char not in mapping:
             raise ValueError(f"Unsupported input: {char!r}")
@@ -40,6 +42,7 @@ class Command(Enum):
             pygame.K_UP: cls.ROTATE,
             pygame.K_q: cls.QUIT,
             pygame.K_h: cls.HELP,
+            pygame.K_p: cls.PAUSE,
         }
         if key not in mapping:
             raise ValueError(f"Unsupported pygame key: {key}")
