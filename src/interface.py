@@ -142,7 +142,16 @@ class InterfacePygame(Interface):
     _BLOCK_SCALE_FACTOR = 36
     _WIDTH_PADDING = 40
     _HEIGHT_PADDING = 10
-
+    _INSTRUCTIONS = [
+        "← : Move Left",
+        "→ : Move Right",
+        "↓ : Move Down",
+        "↑ : Rotate",
+        "<SPC> : Hard Drop",
+        "Q : Quit",
+        "P : Pause",
+    ]
+    _font_name = "freesans"
     def __init__(self, *args):
         super().__init__(*args)
         # pygame setup
@@ -159,19 +168,22 @@ class InterfacePygame(Interface):
         self._grid_top_left_x = int((self._screen_width - self._grid_width) * 0.50)
         self._grid_top_left_y = (self._screen_height - self._grid_height) // 2
 
-
-
         # Title
-        title_label_font_size = int(self._block_size * 2)
-        title = pygame.font.SysFont("comicsans", title_label_font_size)
-        self._title_label = title.render("TETRIS", 1, WHITE_COLOUR)
+        title_label_font_size = int(self._block_size * 1.2)
+        title_font = pygame.font.SysFont(self._font_name, title_label_font_size, bold=True)
+        self._title_label = title_font.render("TETRIS", 1, WHITE_COLOUR)
 
         # Game over screen
-        self._game_over_label = title.render("GAME OVER", 1, RED_COLOUR)
+        self._game_over_label = title_font.render("GAME OVER", 1, RED_COLOUR)
 
         # Subtitle font, used for score, next piece & pause labels
         subtitle_label_font_size = int(title_label_font_size * 0.6)
-        self._subtitle_font = pygame.font.SysFont("comicsans", subtitle_label_font_size)
+        self._subtitle_font = pygame.font.SysFont(self._font_name, subtitle_label_font_size, bold=True)
+
+
+        # Text Font
+        text_font_size = int(title_label_font_size * 0.45)
+        self._text_font = pygame.font.SysFont(self._font_name, text_font_size, bold=True)
 
         # Info Section
         self._info_box_width = self._grid_width
@@ -242,7 +254,17 @@ class InterfacePygame(Interface):
         Shows the instructions to the player
         :return: None
         """
-        pass  # TODO: Not implemented yet
+        instrs_label = self._subtitle_font.render("INSTRUCTIONS", 1, WHITE_COLOUR)
+        top_left_x = self._info_box_top_left_x + self._block_size
+        instr_top_left_y = self._info_box_top_left_y + self._info_box_height * 0.55
+        self._screen.blit(instrs_label,(self._info_box_top_left_x + self._info_box_width / 2 - instrs_label.get_width() / 2, instr_top_left_y))
+        sy = instr_top_left_y + instrs_label.get_height() * 1.5
+        for i, l in enumerate(self._INSTRUCTIONS):
+            top_left_y = sy + self._text_font.get_height() * i * 1.2
+            self._text_font.get_height()
+            label = self._text_font.render(l, 1, WHITE_COLOUR)
+            self._screen.blit(label, (top_left_x, top_left_y))
+
 
     def quit(self) -> None:
         """
@@ -318,6 +340,7 @@ class InterfacePygame(Interface):
         )
         self._draw_score_stats()
         self._draw_next_piece_section()
+        self.show_instructions()
 
         # Line above pause box
         pause_box_line_separator_y = self._paused_label_top_left_y - (self._info_box_top_left_y + self._info_box_height - (
@@ -407,6 +430,15 @@ class InterfacePygame(Interface):
                     (box_top_left_x + j * self._block_size, box_top_left_y),
                     (box_top_left_x + j * self._block_size, box_top_left_y + box_height),
                 )  # vertical line
+
+        # TODO: next piece section isn't vertically central in its box right now
+        separator_line_y = box_top_left_y + (num_blocks_height + 1) * self._block_size
+        pygame.draw.line(
+            self._screen,
+            GREY_COLOUR,
+            (self._info_box_top_left_x, separator_line_y),
+            (self._info_box_top_left_x + self._info_box_width, separator_line_y),
+        )
 
     def _draw_game_over_title(self) -> None:
         self._screen.blit(
