@@ -96,7 +96,8 @@ class Engine(EngineAbstract):
                     run = False
                     break
                 elif cmd == Command.PAUSE:
-                    self._pause()
+                    run = not self._pause()
+                    need_to_refresh = run
                 elif cmd == Command.ROTATE:
                     self._active_piece.rotate()
                 elif cmd == Command.MOVE_BOTTOM:
@@ -168,10 +169,10 @@ class Engine(EngineAbstract):
         ...
 
     @abstractmethod
-    def _pause(self) -> None:
+    def _pause(self) -> bool:
         """
         Pauses the game until the pause command is seen again to unpause
-        :return: None
+        :return: True if quit command was input during pause, False otherwise
         """
         ...
 
@@ -197,17 +198,19 @@ class EnginePygame(Engine):
         """
         pygame.time.wait(time_ms)
 
-    def _pause(self) -> None:
+    def _pause(self) -> bool:
         """
         Pauses the game until the pause command is seen again to unpause
-        :return: None
+        :return: True if quit command was input during pause, False otherwise
        """
         self._interface.show_paused()
         while True:
             cmds = self._interface.get_input()
             for cmd in cmds:
                 if cmd == Command.PAUSE:
-                    return
+                    return False
+                if cmd == Command.QUIT:
+                    return True
             pygame.time.wait(50)
 
 
@@ -231,9 +234,9 @@ class EngineCLI(Engine):
         """
         pass
 
-    def _pause(self) -> None:
+    def _pause(self) -> bool:
         """
         Pauses the game until the pause command is seen again to unpause
-        :return: None
+        :return: True if quit command was input during pause, False otherwise
         """
-        pass
+        return False
