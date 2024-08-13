@@ -87,6 +87,7 @@ The possible commands are:
         """
         print()
         print(f"SCORE: {self._scorer.score}")
+        print(f"LINES CLEARED: {self._scorer.lines_cleared}")
         print("Board state:")
         print(self._board)
         print()
@@ -111,6 +112,8 @@ The possible commands are:
         """
         print("GAME OVER")
         print(f"FINAL SCORE: {self._scorer.score}")
+        print(f"LINES CLEARED: {self._scorer.lines_cleared}")
+        print(f"LEVEL: {self._scorer.level}")
 
     def show_instructions(self) -> None:
         """
@@ -137,7 +140,7 @@ The possible commands are:
 class InterfacePygame(Interface):
 
     _BLOCK_SCALE_FACTOR = 36
-    _WIDTH_PADDING = 20
+    _WIDTH_PADDING = 40
     _HEIGHT_PADDING = 10
 
     def __init__(self, *args):
@@ -153,22 +156,37 @@ class InterfacePygame(Interface):
 
         self._grid_width = self._board.width * self._block_size
         self._grid_height = self._board.height * self._block_size
-        self._grid_top_left_x = int((self._screen_width - self._grid_width) * 0.25)
+        self._grid_top_left_x = int((self._screen_width - self._grid_width) * 0.50)
         self._grid_top_left_y = (self._screen_height - self._grid_height) // 2
 
+
+
+        # Title
         title_label_font_size = int(self._block_size * 2)
         title = pygame.font.SysFont("comicsans", title_label_font_size)
         self._title_label = title.render("TETRIS", 1, WHITE_COLOUR)
+
+        # Game over screen
         self._game_over_label = title.render("GAME OVER", 1, RED_COLOUR)
 
         # Subtitle font, used for score, next piece & pause labels
         subtitle_label_font_size = int(title_label_font_size * 0.6)
         self._subtitle_font = pygame.font.SysFont("comicsans", subtitle_label_font_size)
 
+        # Info Section
+        self._info_box_width = self._grid_width
+        self._info_box_height = self._grid_height
+        self._info_box_top_left_x = int(self._screen_width * 0.75 - self._grid_width // 2)
+        self._info_box_top_left_y = self._grid_top_left_y
+
         self._next_piece_label = self._subtitle_font.render("NEXT PIECE", 1, WHITE_COLOUR)
-        self._screen = pygame.display.set_mode(self._screen_size)
 
         self._paused_label = self._subtitle_font.render("PAUSED", 1, ORANGE_COLOUR)
+        self._paused_label_top_left_x = self._info_box_top_left_x + self._info_box_width // 2 - self._paused_label.get_width() / 2
+        self._paused_label_top_left_y = self._info_box_top_left_y + self._info_box_height - 1.5 * self._block_size
+
+        # Set screen
+        self._screen = pygame.display.set_mode(self._screen_size)
 
     def draw_screen(self) -> None:
         """
@@ -177,12 +195,14 @@ class InterfacePygame(Interface):
         """
         self._screen.fill(BLACK_COLOUR)
         self._draw_title()
+        self._draw_play_grid()
+        self._draw_info_section()
+        pygame.display.update()
+
+    def _draw_play_grid(self):
         self._draw_tetriminoes()
         self._draw_grid_lines()
         self._draw_border()
-        self._draw_score()
-        self._draw_next_piece_section()
-        pygame.display.update()
 
     def get_input(self) -> List[Command]:
         """
@@ -231,41 +251,12 @@ class InterfacePygame(Interface):
         """
         pygame.display.quit()
 
-    def show_paused(self) -> None:
-        """
-        Shows the user that the game is paused
-        :return: None
-        """
-        label_top_left_x = self._screen_width * 0.75 - self._paused_label.get_width() / 2
-        label_top_left_y = self._screen_height * 0.5
-        self._screen.blit(self._paused_label, (label_top_left_x, label_top_left_y))
-        pygame.display.update()
-
     def _draw_title(self) -> None:
         self._screen.blit(
             self._title_label,
             (
                 self._screen_width / 2 - (self._title_label.get_width() / 2),
                 self._block_size,
-            ),
-        )
-
-    def _draw_game_over_title(self) -> None:
-        self._screen.blit(
-            self._game_over_label,
-            (
-                self._screen_width / 2 - (self._game_over_label.get_width() / 2),
-                self._screen_height * 0.4
-            ),
-        )
-
-    def _draw_final_score(self) -> None:
-        label = self._subtitle_font.render(f"FINAL SCORE: {self._scorer.score}", 1, WHITE_COLOUR)
-        self._screen.blit(
-            label,
-            (
-                self._screen_width / 2 - (label.get_width() / 2),
-                self._screen_height * 0.5
             ),
         )
 
@@ -308,17 +299,73 @@ class InterfacePygame(Interface):
         sy = self._grid_top_left_y
         pygame.draw.rect(surface=self._screen, color=RED_COLOUR, rect=(sx, sy, self._grid_width, self._grid_height), width=2)
 
-    def _draw_score(self) -> None:
+    def show_paused(self) -> None:
+        """
+        Shows the user that the game is paused
+        :return: None
+        """
 
-        label = self._subtitle_font.render(f"SCORE: {self._scorer.score}", 1, WHITE_COLOUR)
-        score_top_left_x = (self._grid_top_left_x + self._grid_width / 2) - label.get_width() / 2
-        score_top_left_y = self._grid_top_left_y - self._block_size
-        self._screen.blit(label, (score_top_left_x, score_top_left_y))
+        self._screen.blit(self._paused_label, (self._paused_label_top_left_x, self._paused_label_top_left_y))
+        pygame.display.update()
+
+    def _draw_info_section(self) -> None:
+        # Border
+        pygame.draw.rect(
+            surface=self._screen,
+            color=GREY_COLOUR,
+            rect=(self._info_box_top_left_x, self._info_box_top_left_y, self._info_box_width, self._info_box_height),
+            width=1
+        )
+        self._draw_score_stats()
+        self._draw_next_piece_section()
+
+        # Line above pause box
+        pause_box_line_separator_y = self._paused_label_top_left_y - (self._info_box_top_left_y + self._info_box_height - (
+                    self._paused_label_top_left_y + self._paused_label.get_height()))
+        pygame.draw.line(
+            self._screen,
+            GREY_COLOUR,
+            (self._info_box_top_left_x, pause_box_line_separator_y),
+            (self._info_box_top_left_x + self._info_box_width, pause_box_line_separator_y)
+
+        )
+
+    def _draw_score_stats(self) -> None:
+        score_label = self._subtitle_font.render(
+            f"SCORE: {self._scorer.score}",
+            1,
+            WHITE_COLOUR,
+        )
+        lines_label = self._subtitle_font.render(
+            f"LINES CLEARED: {self._scorer.lines_cleared}",
+            1,
+            WHITE_COLOUR,
+        )
+        level_label = self._subtitle_font.render(
+            f"LEVEL: {self._scorer.level}",
+            1,
+            WHITE_COLOUR,
+        )
+        top_left_x = self._info_box_top_left_x + self._block_size
+        score_top_left_y = self._info_box_top_left_y + self._block_size
+        lines_top_left_y = score_top_left_y + self._block_size
+        level_top_left_y = lines_top_left_y + self._block_size
+        self._screen.blit(score_label, (top_left_x, score_top_left_y))
+        self._screen.blit(lines_label, (top_left_x, lines_top_left_y))
+        self._screen.blit(level_label, (top_left_x, level_top_left_y))
+
+        sec_separator_line_y = level_top_left_y + level_label.get_height() + score_top_left_y - self._info_box_top_left_y
+        pygame.draw.line(
+            self._screen,
+            GREY_COLOUR,
+            (self._info_box_top_left_x, sec_separator_line_y),
+            (self._info_box_top_left_x + self._info_box_width, sec_separator_line_y),
+        )
+
 
     def _draw_next_piece_section(self) -> None:
-
-        label_top_left_x = self._screen_width * 0.75 - self._next_piece_label.get_width() / 2
-        label_top_left_y = self._screen_height * 0.3
+        label_top_left_x = self._info_box_top_left_x + self._info_box_width // 2 - self._next_piece_label.get_width() / 2
+        label_top_left_y = self._info_box_top_left_y + self._block_size * 6
         self._screen.blit(self._next_piece_label, (label_top_left_x, label_top_left_y))
 
         num_blocks_width = 6
@@ -360,3 +407,38 @@ class InterfacePygame(Interface):
                     (box_top_left_x + j * self._block_size, box_top_left_y),
                     (box_top_left_x + j * self._block_size, box_top_left_y + box_height),
                 )  # vertical line
+
+    def _draw_game_over_title(self) -> None:
+        self._screen.blit(
+            self._game_over_label,
+            (
+                self._screen_width / 2 - (self._game_over_label.get_width() / 2),
+                self._screen_height * 0.4
+            ),
+        )
+
+    def _draw_final_score(self) -> None:
+        score_label = self._subtitle_font.render(f"FINAL SCORE: {self._scorer.score}", 1, WHITE_COLOUR)
+        lines_label = self._subtitle_font.render(f"LINES CLEARED: {self._scorer.lines_cleared}", 1, WHITE_COLOUR)
+        level_label = self._subtitle_font.render(f"LEVEL: {self._scorer.level}", 1, WHITE_COLOUR)
+        self._screen.blit(
+            score_label,
+            (
+                self._screen_width / 2 - (score_label.get_width() / 2),
+                self._screen_height * 0.5
+            ),
+        )
+        self._screen.blit(
+            lines_label,
+            (
+                self._screen_width / 2 - (lines_label.get_width() / 2),
+                self._screen_height * 0.5 + score_label.get_height() * 1.5,
+            ),
+        )
+        self._screen.blit(
+            level_label,
+            (
+                self._screen_width / 2 - (level_label.get_width() / 2),
+                self._screen_height * 0.5 + (lines_label.get_height() + score_label.get_height()) * 1.5,
+            ),
+        )

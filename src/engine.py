@@ -79,7 +79,7 @@ class Engine(EngineAbstract):
         self._interface.draw_screen()
 
         # Add timed downwards movement for passage of time
-        self._start_downward_movement()
+        self._set_downward_movement()
 
         run = True
         while run:
@@ -107,7 +107,10 @@ class Engine(EngineAbstract):
                             break
                     lines_cleared = self._board.clear_completed_rows()
                     if lines_cleared > 0:
-                        self._scorer.add_to_score(lines_cleared, 0)  # level not used right now
+                        levelled_up = self._scorer.add_to_score(lines_cleared)
+                        if levelled_up:
+                            # Refresh "falling" logic, to speed it up when needed
+                            self._set_downward_movement()
                     if self._board.reached_top_row():
                         # Player has lost
                         run = False
@@ -121,7 +124,10 @@ class Engine(EngineAbstract):
                         # Piece is now frozen in place
                         lines_cleared = self._board.clear_completed_rows()
                         if lines_cleared > 0:
-                            self._scorer.add_to_score(lines_cleared, 0)  # level not used right now
+                            levelled_up = self._scorer.add_to_score(lines_cleared)
+                            if levelled_up:
+                                # Refresh "falling" logic, to speed it up when needed
+                                self._set_downward_movement()
                         if self._board.reached_top_row():
                             # Player has lost
                             run = False
@@ -145,9 +151,9 @@ class Engine(EngineAbstract):
         self._active_piece = self._board.new_piece(self._piece_generator.generate_new_piece_type())
 
     @abstractmethod
-    def _start_downward_movement(self) -> None:
+    def _set_downward_movement(self) -> None:
         """
-        Starts the automatic downward movement of pieces, so they fall as time passes
+        Sets the automatic downward movement of pieces, so they fall as time passes
         :return: None
         """
         ...
@@ -170,19 +176,18 @@ class Engine(EngineAbstract):
         ...
 
 
-
-
 class EnginePygame(Engine):
+    _FALL_DELAY = 750
 
     def __init__(self, board: Board, scorer: Scorer, piece_generator: PieceGenerator):
         super().__init__(board, scorer, InterfacePygame(board, scorer, piece_generator), piece_generator)
 
-    def _start_downward_movement(self) -> None:
+    def _set_downward_movement(self) -> None:
         """
         Starts the automatic downward movement of pieces, so they fall as time passes
         :return: None
         """
-        pygame.time.set_timer(pygame.event.Event(pygame.KEYDOWN, {"key": pygame.K_DOWN}), 750)
+        pygame.time.set_timer(pygame.event.Event(pygame.KEYDOWN, {"key": pygame.K_DOWN}), self._FALL_DELAY - self._scorer.level * 50)
 
     def _wait(self, time_ms: int) -> None:
         """
@@ -211,7 +216,7 @@ class EngineCLI(Engine):
     def __init__(self, board: Board, scorer: Scorer, piece_generator: PieceGenerator):
         super().__init__(board, scorer, InterfaceCLI(board, scorer, piece_generator), piece_generator)
 
-    def _start_downward_movement(self) -> None:
+    def _set_downward_movement(self) -> None:
         """
         Starts the automatic downward movement of pieces, so they fall as time passes
         :return: None
