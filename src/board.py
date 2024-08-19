@@ -41,16 +41,16 @@ class Board:
         piece = piece_cls(self, top_left)
         return piece
 
-    def clear_completed_rows(self) -> int:
+    def clear_completed_rows(self, rows: List[int]) -> int:
         """
         Checks if any rows are complete and removes them
+        :param rows: the rows to check
         :return: the number of rows cleared
         """
+        rows = sorted(rows, reverse=True)
         removed = 0
-        bottom_playable_row = self._height - 1
-        top_playable_row = _ROW_PADDING
         with self.lock:
-            for i in range(bottom_playable_row, top_playable_row - 1, -1):
+            for i in rows:
                 if self._full_row(i):
                     self._remove_row(i)
                     removed += 1

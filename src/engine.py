@@ -106,7 +106,7 @@ class Engine(EngineAbstract):
                         shifted = self._active_piece.shift(direction)
                         if not shifted:
                             break
-                    lines_cleared = self._board.clear_completed_rows()
+                    lines_cleared = self._board.clear_completed_rows(list(self._active_piece.rows))
                     if lines_cleared > 0:
                         levelled_up = self._scorer.add_to_score(lines_cleared)
                         if levelled_up:
@@ -123,7 +123,7 @@ class Engine(EngineAbstract):
                     self._active_piece.shift(direction)
                     if not self._active_piece.can_shift_down():
                         # Piece is now frozen in place
-                        lines_cleared = self._board.clear_completed_rows()
+                        lines_cleared = self._board.clear_completed_rows(list(self._active_piece.rows))
                         if lines_cleared > 0:
                             levelled_up = self._scorer.add_to_score(lines_cleared)
                             if levelled_up:

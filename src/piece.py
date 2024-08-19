@@ -120,7 +120,7 @@ class Piece(ABC):
         return set(p.x for p in self._points)
 
     @property
-    def _rows(self) -> Set[int]:
+    def rows(self) -> Set[int]:
         """
         The rows taken up by all the blocks that make up the piece
         :return: set of integer rows
