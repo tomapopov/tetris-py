@@ -18,7 +18,6 @@ from src.colours import (
 )
 from src.point import Point, MinoPoint
 
-PI_DIV_2 = math.pi / 2
 
 PIECE_COLOURS_ANSI = [
     "\033[37m{}\033[00m",  # white, for empty spaces
