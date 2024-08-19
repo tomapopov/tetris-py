@@ -93,7 +93,7 @@ class Board:
         for p in piece.points:
             assert self._at_point(p) == 0
         for p in piece.points:
-            self._set_at_point(p, piece.colour_code)
+            self._set_at_point(p, piece.piece_index)
 
     def space_below(self, point: MinoPoint) -> bool:
         """
@@ -151,7 +151,7 @@ class Board:
 
     def _remove_piece(self, piece: Piece) -> None:
         for p in piece.points:
-            assert self._at_point(p) == piece.colour_code
+            assert self._at_point(p) == piece.piece_index
         for p in piece.points:
             self._set_at_point(p, 0)
 

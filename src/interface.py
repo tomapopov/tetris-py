@@ -405,13 +405,12 @@ class InterfacePygame(Interface):
             width=1
         )
         next_piece_type = self._piece_generator.next_piece_type
-        # TODO: shouldn't be calling init state here, should extract relevant info into another method
-        blocks, centre = next_piece_type.init_state(MinoPoint(2, 0))
+        blocks, _ = next_piece_type.points_from_top_left(MinoPoint(2, 0))
 
         for block in blocks:
             pygame.draw.rect(
                 surface=self._screen,
-                color=PIECE_COLOURS_RGB[next_piece_type.colour_code],
+                color=PIECE_COLOURS_RGB[next_piece_type.piece_index],
                 rect=(box_top_left_x + block.x * self._block_size, box_top_left_y + block.y * self._block_size, self._block_size, self._block_size),
                 width=0,
             )

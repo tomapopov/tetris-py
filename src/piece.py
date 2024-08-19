@@ -45,7 +45,7 @@ PIECE_COLOURS_RGB = [
 
 class Piece(ABC):
     def __init__(self, board: "Board", top_left: MinoPoint):
-        ps, c = self.init_state(top_left)
+        ps, c = self.points_from_top_left(top_left)
         self._points: List[MinoPoint] = ps
         self._centre: Point = c
         self._board = board
@@ -60,9 +60,9 @@ class Piece(ABC):
 
     @classmethod
     @abstractmethod
-    def init_state(cls, top_left: MinoPoint) -> Tuple[List[MinoPoint], Point]:
+    def points_from_top_left(cls, top_left: MinoPoint) -> Tuple[List[MinoPoint], Point]:
         """
-        Initializes the state
+        Calculates the blocks and rotational centre from the top left block coordinate
         :param top_left: the top left block coordinate
         :return: Tuple of: list of block coordinates for the piece, and the rotational centre
         """
@@ -139,12 +139,18 @@ class Piece(ABC):
         assert len(matches) == 1, f"How did we not find the lowest piece in col {col!r}?!"
         return matches[0]
 
+    @classmethod
+    @property
+    @abstractmethod
+    def piece_index(self) -> int:
+        ...
+
 
 class IPiece(Piece):
-    colour_code: int = 1
+    piece_index: int = 1
 
     @classmethod
-    def init_state(self, top_left: MinoPoint):
+    def points_from_top_left(self, top_left: MinoPoint):
         points = [
             MinoPoint(top_left.x, top_left.y),
             MinoPoint(top_left.x + 1, top_left.y),
@@ -155,10 +161,10 @@ class IPiece(Piece):
 
 
 class JPiece(Piece):
-    colour_code: int = 2
+    piece_index: int = 2
 
     @classmethod
-    def init_state(cls, top_left: MinoPoint):
+    def points_from_top_left(cls, top_left: MinoPoint):
         next_row_idx = top_left.y + 1
         points = [
             MinoPoint(top_left.x, top_left.y),
@@ -170,10 +176,10 @@ class JPiece(Piece):
 
 
 class LPiece(Piece):
-    colour_code: int = 3
+    piece_index: int = 3
 
     @classmethod
-    def init_state(cls, top_left: MinoPoint):
+    def points_from_top_left(cls, top_left: MinoPoint):
         next_row_idx = top_left.y + 1
         points = [
             MinoPoint(top_left.x, top_left.y),
@@ -185,10 +191,10 @@ class LPiece(Piece):
 
 
 class OPiece(Piece):
-    colour_code: int = 4
+    piece_index: int = 4
 
     @classmethod
-    def init_state(cls, top_left: MinoPoint):
+    def points_from_top_left(cls, top_left: MinoPoint):
         points = [
             MinoPoint(top_left.x, top_left.y),
             MinoPoint(top_left.x + 1, top_left.y),
@@ -200,10 +206,10 @@ class OPiece(Piece):
 
 
 class SPiece(Piece):
-    colour_code: int = 5
+    piece_index: int = 5
 
     @classmethod
-    def init_state(cls, top_left: MinoPoint):
+    def points_from_top_left(cls, top_left: MinoPoint):
         points = [
             MinoPoint(top_left.x, top_left.y),
             MinoPoint(top_left.x + 1, top_left.y),
@@ -214,11 +220,11 @@ class SPiece(Piece):
 
 
 class TPiece(Piece):
-    colour_code: int = 6
+    piece_index: int = 6
 
 
     @classmethod
-    def init_state(cls, top_left: MinoPoint):
+    def points_from_top_left(cls, top_left: MinoPoint):
         next_row_idx = top_left.y + 1
         points = [
             MinoPoint(top_left.x, top_left.y),
@@ -230,10 +236,10 @@ class TPiece(Piece):
 
 
 class ZPiece(Piece):
-    colour_code: int = 7
+    piece_index: int = 7
 
     @classmethod
-    def init_state(cls, top_left: MinoPoint):
+    def points_from_top_left(cls, top_left: MinoPoint):
         points = [
             MinoPoint(top_left.x, top_left.y),
             MinoPoint(top_left.x + 1, top_left.y),
