@@ -1,8 +1,7 @@
 import random
-from threading import Lock
 from typing import List, Type
 
-from src.piece import Piece, new_piece_type, PIECE_COLOURS_ANSI
+import src.piece as piece
 from src.point import MinoPoint
 
 Grid = List[List[int]]
@@ -16,7 +15,7 @@ class Board:
         self._height = height + _ROW_PADDING
         self._width = width
         self._grid: Grid = self._new_rows(self._height, width)
-        self._next_piece_type = new_piece_type()
+        self._next_piece_type = piece.new_piece_type()
 
     def reached_top_row(self) -> bool:
         """
@@ -26,7 +25,7 @@ class Board:
         top_playable_row = self._grid[_ROW_PADDING]
         return sum(top_playable_row) > 0
 
-    def new_piece(self, piece_cls: Type[Piece]) -> Piece:
+    def new_piece(self, piece_cls: Type["piece.Piece"]) -> "piece.Piece":
         """
         Adds a new piece of the given type to the board
         :param piece_cls: Piece type
@@ -55,7 +54,7 @@ class Board:
         self._grid = self._new_rows(removed, self._width) + self._grid
         return removed
 
-    def update_piece_location(self, piece: Piece, old_points: List[MinoPoint]) -> None:
+    def update_piece_location(self, piece: "piece.Piece", old_points: List[MinoPoint]) -> None:
         """
         Updates a piece, used in moving pieces
         :param piece: the piece being moved
@@ -66,7 +65,7 @@ class Board:
             self._set_at_point(p, 0)
         self.add_piece(piece)
 
-    def can_shift(self, piece: Piece, new_points: List[MinoPoint]) -> bool:
+    def can_shift(self, piece: "piece.Piece", new_points: List[MinoPoint]) -> bool:
         """
         Checks if a piece can be moved to the new points
         :param piece: the piece
@@ -82,7 +81,7 @@ class Board:
         self.add_piece(piece)
         return res
 
-    def add_piece(self, piece: Piece) -> None:
+    def add_piece(self, piece: "piece.Piece") -> None:
         """
         Adds a piece to the board
         :param piece: the piece to add
@@ -142,7 +141,7 @@ class Board:
     def _new_rows(height: int, width: int) -> Grid:
         return [[0] * width for _ in range(height)]
 
-    def _remove_piece(self, piece: Piece) -> None:
+    def _remove_piece(self, piece: "piece.Piece") -> None:
         for p in piece.points:
             assert self._at_point(p) == piece.piece_index
         for p in piece.points:
@@ -164,7 +163,7 @@ class Board:
             for x in row:
                 assert isinstance(x, int)
                 marker = "X" if x > 0 else "0"
-                row_res.append(PIECE_COLOURS_ANSI[x].format(marker))
+                row_res.append(piece.PIECE_COLOURS_ANSI[x].format(marker))
             res.append(" ".join(row_res))
         pretty_grid = "\n".join(res)
         return str(pretty_grid)
