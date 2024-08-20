@@ -16,7 +16,6 @@ class Board:
         self._height = height + _ROW_PADDING
         self._width = width
         self._grid: Grid = self._new_rows(self._height, width)
-        self._lock = Lock()
         self._next_piece_type = new_piece_type()
 
     def reached_top_row(self) -> bool:
@@ -49,12 +48,11 @@ class Board:
         """
         rows = sorted(rows, reverse=True)
         removed = 0
-        with self.lock:
-            for i in rows:
-                if self._full_row(i):
-                    self._remove_row(i)
-                    removed += 1
-            self._grid = self._new_rows(removed, self._width) + self._grid
+        for i in rows:
+            if self._full_row(i):
+                self._remove_row(i)
+                removed += 1
+        self._grid = self._new_rows(removed, self._width) + self._grid
         return removed
 
     def update_piece_location(self, piece: Piece, old_points: List[MinoPoint]) -> None:
@@ -107,10 +105,6 @@ class Board:
         return self._grid[below_y][point.x] == 0
 
     @property
-    def lock(self) -> Lock:
-        return self._lock
-
-    @property
     def height(self) -> int:
         """
         Public height value used by other components
@@ -135,8 +129,7 @@ class Board:
         :param j: column
         :return: integer code of the piece at that coordinate
         """
-        with self._lock:
-            return self._grid[i + _ROW_PADDING][j]
+        return self._grid[i + _ROW_PADDING][j]
 
     def _full_row(self, idx: int) -> bool:
         row = self._grid[idx]

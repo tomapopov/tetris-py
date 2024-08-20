@@ -72,15 +72,14 @@ class Piece(ABC):
         Rotates the piece on the board, if possible
         :return: None
         """
-        with self._board.lock:
-            new_points = [_rotate_90(p, self._centre) for p in self._points]
-            if self._board.can_shift(self, new_points):
-                # TODO: add "wall kick" functionality to rotate + shift the piece
-                #  when its going to hit a wall or the stack from rotating
-                old_points = self._points
-                self._points = new_points
-                # No need to update centre here
-                self._board.update_piece_location(self, old_points)
+        new_points = [_rotate_90(p, self._centre) for p in self._points]
+        if self._board.can_shift(self, new_points):
+            # TODO: add "wall kick" functionality to rotate + shift the piece
+            #  when its going to hit a wall or the stack from rotating
+            old_points = self._points
+            self._points = new_points
+            # No need to update centre here
+            self._board.update_piece_location(self, old_points)
 
     def shift(self, direction: Direction) -> bool:
         """
@@ -88,16 +87,15 @@ class Piece(ABC):
         :param direction: Direction
         :return: True if the piece moved successfully, False otherwise
         """
-        with self._board.lock:
-            new_points = [p.shift(direction) for p in self._points]
-            if self._board.can_shift(self, new_points):
-                old_points = self._points
-                self._points = new_points
-                self._centre = self._centre.shift(direction)
-                self._board.update_piece_location(self, old_points)
-                shifted = True
-            else:
-                shifted = False
+        new_points = [p.shift(direction) for p in self._points]
+        if self._board.can_shift(self, new_points):
+            old_points = self._points
+            self._points = new_points
+            self._centre = self._centre.shift(direction)
+            self._board.update_piece_location(self, old_points)
+            shifted = True
+        else:
+            shifted = False
         return shifted
 
     def can_shift_down(self) -> bool:
