@@ -1,5 +1,7 @@
 # Tetris Game
 
+[![Build](https://github.com/tomapopov/tetris-game/actions/workflows/python-build.yml/badge.svg)](https://github.com/tomapopov/tetris-game/actions/workflows/python-build.yml)
+
 This game has 2 versions:
  - Full version using a GUI with all the features.
  - Basic version via CLI with some reduced functionality, like no "falling" logic.
