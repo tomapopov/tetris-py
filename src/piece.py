@@ -1,10 +1,10 @@
-import math
 from abc import ABC, abstractmethod
 from typing import Tuple, List, Set, Type
 import random
 
 from src.direction import Direction
 
+import src.board as  board
 
 from src.colours import (
     BLACK_COLOUR,
@@ -43,7 +43,7 @@ PIECE_COLOURS_RGB = [
 
 
 class Piece(ABC):
-    def __init__(self, board: "Board", top_left: MinoPoint):
+    def __init__(self, board: "board.Board", top_left: MinoPoint):
         ps, c = self.points_from_top_left(top_left)
         self._points: List[MinoPoint] = ps
         self._centre: Point = c
