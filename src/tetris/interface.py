@@ -7,19 +7,21 @@ from typing import List
 import pygame
 
 from .board import Board
-from .colours import BLACK_COLOUR, GREY_COLOUR, RED_COLOUR, WHITE_COLOUR, ORANGE_COLOUR
-from .piece import PIECE_COLOURS_RGB, PieceGenerator
+from .colours import BLACK_COLOUR, GREY_COLOUR, RED_COLOUR, WHITE_COLOUR, ORANGE_COLOUR, YELLOW_COLOUR, DARK_GREY_COLOUR
+from .piece import PIECE_COLOURS_RGB, PieceGenerator, SHAPE_POSSIBILITIES
 from .command import Command
 from .scorer import Scorer
 from .point import MinoPoint
+from .statistics import Statistics
 
 
 class Interface(ABC):
 
-    def __init__(self, board: Board, scorer: Scorer, piece_generator: PieceGenerator):
+    def __init__(self, board: Board, scorer: Scorer, piece_generator: PieceGenerator,  statistics: Statistics):
         self._board = board
         self._scorer = scorer
         self._piece_generator = piece_generator
+        self._statistics = statistics
 
     @abstractmethod
     def draw_screen(self) -> None:
@@ -91,6 +93,8 @@ The possible commands are:
         print()
         print(f"SCORE: {self._scorer.score}")
         print(f"LINES CLEARED: {self._scorer.lines_cleared}")
+        count_strs = [f"{shape.letter}: {self._statistics.shape_counts[shape.letter]}" for shape in SHAPE_POSSIBILITIES]
+        print(f"STATISTICS: {', '.join(count_strs)}")
         print("Board state:")
         print(self._board)
         print()
@@ -173,11 +177,11 @@ class InterfacePygame(Interface):
 
         # Title
         title_label_font_size = int(self._block_size * 1.2)
-        title_font = pygame.font.SysFont(self._font_name, title_label_font_size, bold=True)
-        self._title_label = title_font.render("TETRIS", 1, WHITE_COLOUR)
+        self._title_font = pygame.font.SysFont(self._font_name, title_label_font_size, bold=True)
+        self._title_label = self._title_font.render("TETRIS", 1, WHITE_COLOUR)
 
         # Game over screen
-        self._game_over_label = title_font.render("GAME OVER", 1, RED_COLOUR)
+        self._game_over_label = self._title_font.render("GAME OVER", 1, RED_COLOUR)
 
         # Subtitle font, used for score, next piece & pause labels
         subtitle_label_font_size = int(title_label_font_size * 0.6)
@@ -191,7 +195,7 @@ class InterfacePygame(Interface):
         # Info Section
         self._info_box_width = self._grid_width
         self._info_box_height = self._grid_height
-        self._info_box_top_left_x = int(self._screen_width * 0.75 - self._grid_width // 2)
+        self._info_box_top_left_x = int(self._screen_width * 0.75 - self._info_box_width // 2)
         self._info_box_top_left_y = self._grid_top_left_y
 
         self._next_piece_label = self._subtitle_font.render("NEXT PIECE", 1, WHITE_COLOUR)
@@ -199,6 +203,13 @@ class InterfacePygame(Interface):
         self._paused_label = self._subtitle_font.render("PAUSED", 1, ORANGE_COLOUR)
         self._paused_label_top_left_x = self._info_box_top_left_x + self._info_box_width // 2 - self._paused_label.get_width() / 2
         self._paused_label_top_left_y = self._info_box_top_left_y + self._info_box_height - 1.5 * self._block_size
+
+        # Statistics screen
+        self._stats_box_width = self._grid_width
+        self._stats_box_height = self._grid_height
+        self._stats_box_top_left_x = int(self._screen_width * 0.25 - self._stats_box_width // 2)
+        self._stats_box_top_left_y = self._grid_top_left_y
+        self._stats_title = self._title_font.render("STATISTICS", 1, YELLOW_COLOUR)
 
         # Set screen
         self._screen = pygame.display.set_mode(self._screen_size)
@@ -208,10 +219,11 @@ class InterfacePygame(Interface):
         Draws the main gameplay screen
         :return: None
         """
-        self._screen.fill(BLACK_COLOUR)
+        self._screen.fill(DARK_GREY_COLOUR)
         self._draw_title()
         self._draw_play_grid()
         self._draw_info_section()
+        self._draw_statistics_section()
         pygame.display.update()
 
     def _draw_play_grid(self):
@@ -441,6 +453,41 @@ class InterfacePygame(Interface):
             (self._info_box_top_left_x, separator_line_y),
             (self._info_box_top_left_x + self._info_box_width, separator_line_y),
         )
+
+    def _draw_statistics_section(self) -> None:
+        # Border
+        pygame.draw.rect(
+            surface=self._screen,
+            color=GREY_COLOUR,
+            rect=(self._stats_box_top_left_x, self._stats_box_top_left_y, self._stats_box_width, self._stats_box_height),
+            width=1
+        )
+
+        # Title
+        stats_box_middle = self._stats_box_top_left_x + self._stats_box_width / 2
+        stats_title_y = self._stats_box_top_left_y + self._block_size
+        stats_title_x = stats_box_middle - self._stats_title.get_width() / 2
+        self._screen.blit(
+            self._stats_title,
+            (
+                stats_title_x,
+                stats_title_y,
+            )
+        )
+
+        # The shape statistics
+        spacial_factor = 1.2
+        sy = stats_title_y + self._title_font.get_height() * spacial_factor
+        for i, shape in enumerate(SHAPE_POSSIBILITIES):
+            letter = shape.letter
+            label = self._title_font.render(f"{letter}: {self._statistics.shape_counts[letter]}", 1, PIECE_COLOURS_RGB[shape.piece_index])
+            self._screen.blit(
+                label,
+                (
+                    stats_box_middle - label.get_width() / 2,
+                    sy + self._title_font.get_height() * spacial_factor * i,
+                )
+            )
 
     def _draw_game_over_title(self) -> None:
         self._screen.blit(

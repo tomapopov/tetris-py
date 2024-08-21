@@ -289,11 +289,11 @@ def _rotate_90(p: MinoPoint, centre: Point) -> MinoPoint:
     return MinoPoint(int(new_x), int(new_y))
 
 
-_SHAPE_POSSIBILITIES = [IPiece, ZPiece, LPiece, JPiece, SPiece, TPiece, OPiece]
+SHAPE_POSSIBILITIES = [IPiece, ZPiece, LPiece, JPiece, SPiece, TPiece, OPiece]
 
 
 def new_piece_type() -> Type[Piece]:
-    return random.choice(_SHAPE_POSSIBILITIES)
+    return random.choice(SHAPE_POSSIBILITIES)
 
 class PieceGenerator:
     """

@@ -6,6 +6,7 @@ from .engine import EngineCLI
 from .scorer import SimpleScorer
 from .piece import PieceGenerator
 from .utils import parse_args
+from .statistics import Statistics
 
 
 def main():
@@ -13,7 +14,8 @@ def main():
     board = Board(parsed.board_height, parsed.board_width)
     scorer = SimpleScorer()
     piece_generator = PieceGenerator()
-    engine = EngineCLI(board, scorer, piece_generator)
+    statistics = Statistics()
+    engine = EngineCLI(board, scorer, piece_generator, statistics)
     engine.run()
 
 

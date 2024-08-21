@@ -2,6 +2,7 @@
 # For details: https://github.com/tomapopov/tetris-py/blob/main/NOTICE
 
 BLACK_COLOUR = (0, 0, 0)
+DARK_GREY_COLOUR = (20, 20, 20)
 GREY_COLOUR = (128, 128, 128)
 WHITE_COLOUR = (255, 255, 255)
 CYAN_COLOUR = (52, 235, 222)

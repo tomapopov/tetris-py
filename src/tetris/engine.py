@@ -11,6 +11,7 @@ from .command import Command
 from .piece import Piece, PieceGenerator
 from .interface import InterfacePygame, Interface, InterfaceCLI
 from .scorer import Scorer
+from .statistics import Statistics
 
 _LOOP_SLEEP_TIME_MS = 20
 
@@ -40,12 +41,14 @@ class Engine(EngineAbstract):
     """
     Generalized engine class used in both versions of the game
     """
-    def __init__(self, board: Board, scorer: Scorer, interface: Interface, piece_generator: PieceGenerator):
+    def __init__(self, board: Board, scorer: Scorer, interface: Interface, piece_generator: PieceGenerator, statistics: Statistics):
         self._board = board
         self._piece_generator = piece_generator
         self._interface = interface
         self._active_piece: Optional[Piece] = None
         self._scorer = scorer
+        self._statistics = statistics
+
 
     def run(self) -> None:
         """
@@ -153,6 +156,7 @@ class Engine(EngineAbstract):
         :return: None
         """
         self._active_piece = self._board.new_piece(self._piece_generator.generate_new_piece_type())
+        self._statistics.inc_count(self._active_piece)
 
     @abstractmethod
     def _set_downward_movement(self) -> None:
@@ -183,8 +187,8 @@ class Engine(EngineAbstract):
 class EnginePygame(Engine):
     _FALL_DELAY = 750
 
-    def __init__(self, board: Board, scorer: Scorer, piece_generator: PieceGenerator):
-        super().__init__(board, scorer, InterfacePygame(board, scorer, piece_generator), piece_generator)
+    def __init__(self, board: Board, scorer: Scorer, piece_generator: PieceGenerator, statistics: Statistics):
+        super().__init__(board, scorer, InterfacePygame(board, scorer, piece_generator, statistics), piece_generator, statistics)
 
     def _set_downward_movement(self) -> None:
         """
@@ -219,8 +223,8 @@ class EnginePygame(Engine):
 
 class EngineCLI(Engine):
 
-    def __init__(self, board: Board, scorer: Scorer, piece_generator: PieceGenerator):
-        super().__init__(board, scorer, InterfaceCLI(board, scorer, piece_generator), piece_generator)
+    def __init__(self, board: Board, scorer: Scorer, piece_generator: PieceGenerator, statistics: Statistics):
+        super().__init__(board, scorer, InterfaceCLI(board, scorer, piece_generator, statistics), piece_generator, statistics)
 
     def _set_downward_movement(self) -> None:
         """
