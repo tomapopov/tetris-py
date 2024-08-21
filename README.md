@@ -41,3 +41,9 @@ For the CLI version, use `./run_cli` instead.
 ## Dependencies
 The GUI version uses the `pygame` package, which is listed in `requirements.txt`.
 
+## License
+
+Copyright 2024 Toma Popov.
+
+Distributed under the terms of the  [Apache 2.0 license](https://github.com/tomapopov/tetris-py/blob/main/LICENSE).
+

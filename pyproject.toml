@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tetris-py"
-version = "0.0.8"
+version = "0.0.9"
 authors = [
   { name="Toma Popov", email="toma98@hotmail.co.uk" },
 ]
@@ -20,6 +20,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: Apache Software License"
 ]
 
 [project.scripts]
