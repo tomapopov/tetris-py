@@ -1,8 +1,8 @@
-from src.board import Board
-from src.engine import EngineCLI
-from src.scorer import SimpleScorer
-from src.piece import PieceGenerator
-from src.utils import parse_args
+from .board import Board
+from .engine import EngineCLI
+from .scorer import SimpleScorer
+from .piece import PieceGenerator
+from .utils import parse_args
 
 
 def main():

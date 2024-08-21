@@ -1,2 +1,2 @@
 #! /usr/bin/bash
-python -m src.main_cli
+cd src/ && { python -m tetris_game.main_cli; cd ../; }

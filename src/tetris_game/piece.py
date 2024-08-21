@@ -2,11 +2,11 @@ from abc import ABC, abstractmethod
 from typing import Tuple, List, Set, Type
 import random
 
-from src.direction import Direction
+from .direction import Direction
 
-import src.board as  board
+from . import board
 
-from src.colours import (
+from .colours import (
     BLACK_COLOUR,
     CYAN_COLOUR,
     PINK_COLOUR,
@@ -16,7 +16,7 @@ from src.colours import (
     BLUE_COLOUR,
     PURPLE_COLOUR,
 )
-from src.point import Point, MinoPoint
+from .point import Point, MinoPoint
 
 
 PIECE_COLOURS_ANSI = [

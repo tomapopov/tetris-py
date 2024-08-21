@@ -1,8 +1,8 @@
 import random
 from typing import List, Type
 
-import src.piece as piece
-from src.point import MinoPoint
+from . import piece
+from .point import MinoPoint
 
 Grid = List[List[int]]
 _ROW_PADDING = 2

@@ -3,12 +3,12 @@ from typing import List
 
 import pygame
 
-from src.board import Board
-from src.colours import BLACK_COLOUR, GREY_COLOUR, RED_COLOUR, WHITE_COLOUR, ORANGE_COLOUR
-from src.piece import PIECE_COLOURS_RGB, PieceGenerator
-from src.command import Command
-from src.scorer import Scorer
-from src.point import MinoPoint
+from .board import Board
+from .colours import BLACK_COLOUR, GREY_COLOUR, RED_COLOUR, WHITE_COLOUR, ORANGE_COLOUR
+from .piece import PIECE_COLOURS_RGB, PieceGenerator
+from .command import Command
+from .scorer import Scorer
+from .point import MinoPoint
 
 
 class Interface(ABC):

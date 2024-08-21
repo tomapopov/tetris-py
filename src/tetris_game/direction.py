@@ -1,6 +1,6 @@
 from enum import Enum
 
-from src.command import Command
+from .command import Command
 
 
 class Direction(Enum):
