@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tetris-game"
+version = "0.0.1"
+dependencies = [
+    "pygame",
+]
+requires-python = ">=3.9"
+
+[project.scripts]
+tetris-game = "tetris_game:main.main"
+tetris-game-cli = "tetris_game:main_cli.main"
+
+[project.urls]
+Homepage = "https://github.com/tomapopov/tetris-game"
+Issues = "https://github.com/tomapopov/tetris-game/issues"
+
