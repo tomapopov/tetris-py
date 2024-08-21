@@ -14,15 +14,15 @@ This has 2 possible interfaces:
 The preferred way to install Tetris is via pip:
 
 ```sh
-pip install tetris-game
+pip install tetris-py
 ```
 
 To play, you then simply run:
 ```
-tetris-game
+tetris-py
 ```
 
-For the CLI version, use `tetris-game-cli` instead.
+For the CLI version, use `tetris-py-cli` instead.
 
 ### source
 An alternative way is to simply clone the repo and use the `./run` script:

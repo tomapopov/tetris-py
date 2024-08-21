@@ -3,8 +3,8 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "tetris-game"
-version = "0.0.3"
+name = "tetris-py"
+version = "0.0.4"
 authors = [
   { name="Toma Popov", email="toma98@hotmail.co.uk" },
 ]
@@ -19,8 +19,8 @@ classifiers = [
 ]
 
 [project.scripts]
-tetris-game = "tetris:main.main"
-tetris-game-cli = "tetris:main_cli.main"
+tetris-py = "tetris:main.main"
+tetris-py-cli = "tetris:main_cli.main"
 
 [project.urls]
 Homepage = "https://github.com/tomapopov/tetris-game"
