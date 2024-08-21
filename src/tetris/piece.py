@@ -142,9 +142,16 @@ class Piece(ABC):
     def piece_index(self) -> int:
         ...
 
+    @classmethod
+    @property
+    @abstractmethod
+    def letter(self) -> str:
+        ...
+
 
 class IPiece(Piece):
     piece_index: int = 1
+    letter: str = "I"
 
     @classmethod
     def points_from_top_left(self, top_left: MinoPoint):
@@ -159,6 +166,7 @@ class IPiece(Piece):
 
 class JPiece(Piece):
     piece_index: int = 2
+    letter: str = "J"
 
     @classmethod
     def points_from_top_left(cls, top_left: MinoPoint):
@@ -174,6 +182,7 @@ class JPiece(Piece):
 
 class LPiece(Piece):
     piece_index: int = 3
+    letter: str = "L"
 
     @classmethod
     def points_from_top_left(cls, top_left: MinoPoint):
@@ -189,6 +198,7 @@ class LPiece(Piece):
 
 class OPiece(Piece):
     piece_index: int = 4
+    letter: str = "O"
 
     @classmethod
     def points_from_top_left(cls, top_left: MinoPoint):
@@ -204,6 +214,7 @@ class OPiece(Piece):
 
 class SPiece(Piece):
     piece_index: int = 5
+    letter: str = "S"
 
     @classmethod
     def points_from_top_left(cls, top_left: MinoPoint):
@@ -218,6 +229,7 @@ class SPiece(Piece):
 
 class TPiece(Piece):
     piece_index: int = 6
+    letter: str = "T"
 
 
     @classmethod
@@ -234,6 +246,7 @@ class TPiece(Piece):
 
 class ZPiece(Piece):
     piece_index: int = 7
+    letter: str = "Z"
 
     @classmethod
     def points_from_top_left(cls, top_left: MinoPoint):

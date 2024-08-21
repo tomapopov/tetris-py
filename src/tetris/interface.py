@@ -91,7 +91,7 @@ The possible commands are:
         print("Board state:")
         print(self._board)
         print()
-        print(f"Next Piece: {self._piece_generator.next_piece_type}")
+        print(f"Next Piece: {self._piece_generator.next_piece_type.letter}")
 
     def get_input(self) -> List[Command]:
         """
