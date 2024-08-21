@@ -1,3 +1,3 @@
 #! /usr/bin/bash
-cd src/ && { python -m tetris_game.main; cd ../; }
+cd src/ && { python -m tetris.main; cd ../; }
 

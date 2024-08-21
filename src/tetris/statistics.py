@@ -1,7 +1,7 @@
 from collections import defaultdict
-from typing import Dict, Type
+from typing import Dict
 
-from src.tetris.piece import Piece
+from .piece import Piece
 
 
 class Statistics:
