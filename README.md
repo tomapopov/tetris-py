@@ -28,8 +28,8 @@ For the CLI version, use `tetris-py-cli` instead.
 An alternative way is to simply clone the repo and use the `./run` script:
 
 ```
-git clone git@github.com:tomapopov/tetris-game.git
-cd tetris-game
+git clone git@github.com:tomapopov/tetris-py.git
+cd tetris-py
 ./run
 ```
 
