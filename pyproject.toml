@@ -4,11 +4,19 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tetris-game"
-version = "0.0.1"
+version = "0.0.2"
+authors = [
+  { name="Toma Popov", email="toma98@hotmail.co.uk" },
+]
+description = "A Tetris game written in Python."
+readme = "README.md"
 dependencies = [
     "pygame",
 ]
 requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
 
 [project.scripts]
 tetris-game = "tetris:main.main"
