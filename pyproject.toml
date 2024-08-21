@@ -11,8 +11,8 @@ dependencies = [
 requires-python = ">=3.9"
 
 [project.scripts]
-tetris-game = "tetris_game:main.main"
-tetris-game-cli = "tetris_game:main_cli.main"
+tetris-game = "tetris:main.main"
+tetris-game-cli = "tetris:main_cli.main"
 
 [project.urls]
 Homepage = "https://github.com/tomapopov/tetris-game"
