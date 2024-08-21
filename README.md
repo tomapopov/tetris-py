@@ -1,6 +1,8 @@
 # Tetris Game
 
 [![Build](https://github.com/tomapopov/tetris-game/actions/workflows/python-build.yml/badge.svg)](https://github.com/tomapopov/tetris-game/actions/workflows/python-build.yml)
+![PyPI - Version](https://img.shields.io/pypi/v/tetris-py)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/tetris-py)
 
 A Tetris game written in Python. 
 
