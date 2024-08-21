@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tetris-py"
-version = "0.0.4"
+version = "0.0.5"
 authors = [
   { name="Toma Popov", email="toma98@hotmail.co.uk" },
 ]
