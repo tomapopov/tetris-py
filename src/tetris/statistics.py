@@ -9,8 +9,8 @@ class Statistics:
     def __init__(self):
         self._shape_counts: Dict[str, int] = defaultdict(int)
 
-    def inc_count(self, shape: Piece):
-        self._shape_counts[shape.letter] += 1
+    def inc_count(self, piece: Piece) -> None:
+        self._shape_counts[piece.letter] += 1
 
     @property
     def shape_counts(self) -> Dict[str, int]:

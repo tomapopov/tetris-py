@@ -93,7 +93,13 @@ The possible commands are:
         print()
         print(f"SCORE: {self._scorer.score}")
         print(f"LINES CLEARED: {self._scorer.lines_cleared}")
-        count_strs = [f"{shape.letter}: {self._statistics.shape_counts[shape.letter]}" for shape in SHAPE_POSSIBILITIES]
+        counts = self._statistics.shape_counts.copy()
+        total = sum(counts.values())
+        count_strs = [
+            (f"{shape.letter}: {counts[shape.letter]} "
+             f"({round(0 if total == 0 else counts[shape.letter] / total * 100, 1)}%)")
+            for shape in SHAPE_POSSIBILITIES
+        ]
         print(f"STATISTICS: {', '.join(count_strs)}")
         print("Board state:")
         print(self._board)
@@ -177,7 +183,7 @@ class InterfacePygame(Interface):
 
         # Title
         title_label_font_size = int(self._block_size * 1.2)
-        self._title_font = pygame.font.SysFont(self._font_name, title_label_font_size, bold=True)
+        self._title_font = pygame.font.SysFont(self._font_name, title_label_font_size, bold=False)
         self._title_label = self._title_font.render("TETRIS", 1, WHITE_COLOUR)
 
         # Game over screen
@@ -185,12 +191,12 @@ class InterfacePygame(Interface):
 
         # Subtitle font, used for score, next piece & pause labels
         subtitle_label_font_size = int(title_label_font_size * 0.6)
-        self._subtitle_font = pygame.font.SysFont(self._font_name, subtitle_label_font_size, bold=True)
+        self._subtitle_font = pygame.font.SysFont(self._font_name, subtitle_label_font_size, bold=False)
 
 
         # Text Font
         text_font_size = int(title_label_font_size * 0.45)
-        self._text_font = pygame.font.SysFont(self._font_name, text_font_size, bold=True)
+        self._text_font = pygame.font.SysFont(self._font_name, text_font_size, bold=False)
 
         # Info Section
         self._info_box_width = self._grid_width
@@ -422,6 +428,7 @@ class InterfacePygame(Interface):
         next_piece_type = self._piece_generator.next_piece_type
         blocks, _ = next_piece_type.points_from_top_left(MinoPoint(2, 0))
 
+        # Minos
         for block in blocks:
             pygame.draw.rect(
                 surface=self._screen,
@@ -430,6 +437,7 @@ class InterfacePygame(Interface):
                 width=0,
             )
 
+        # Grid lines
         for i in range(num_blocks_height):
             pygame.draw.line(
                 self._screen,
@@ -465,7 +473,7 @@ class InterfacePygame(Interface):
 
         # Title
         stats_box_middle = self._stats_box_top_left_x + self._stats_box_width / 2
-        stats_title_y = self._stats_box_top_left_y + self._block_size
+        stats_title_y = self._stats_box_top_left_y + self._block_size * 0.7
         stats_title_x = stats_box_middle - self._stats_title.get_width() / 2
         self._screen.blit(
             self._stats_title,
@@ -474,13 +482,24 @@ class InterfacePygame(Interface):
                 stats_title_y,
             )
         )
+        line_y = stats_title_y + self._stats_title.get_height() + self._block_size * 0.7
+        pygame.draw.line(
+            self._screen,
+            GREY_COLOUR,
+            (self._stats_box_top_left_x, line_y),
+            (self._stats_box_top_left_x + self._stats_box_width, line_y),
+        )
 
         # The shape statistics
-        spacial_factor = 1.2
-        sy = stats_title_y + self._title_font.get_height() * spacial_factor
+        spacial_factor = 1.3
+        sy = line_y + self._block_size * 0.5
+        counts = self._statistics.shape_counts.copy()
+        total = sum(counts.values())
         for i, shape in enumerate(SHAPE_POSSIBILITIES):
             letter = shape.letter
-            label = self._title_font.render(f"{letter}: {self._statistics.shape_counts[letter]}", 1, PIECE_COLOURS_RGB[shape.piece_index])
+            shape_count = counts[letter]
+            perc = 0 if total == 0 else round(shape_count / total * 100, 1)
+            label = self._title_font.render(f"{letter}: {shape_count} ({perc}%)", 1, PIECE_COLOURS_RGB[shape.piece_index])
             self._screen.blit(
                 label,
                 (
