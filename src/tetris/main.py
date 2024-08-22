@@ -5,5 +5,9 @@ from .engine import EnginePygame
 from .utils import run_game
 
 
-if __name__ == "__main__":
+def main():
     run_game(EnginePygame)
+
+
+if __name__ == "__main__":
+    main()

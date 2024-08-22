@@ -5,5 +5,9 @@ from .engine import EngineCLI
 from .utils import run_game
 
 
-if __name__ == "__main__":
+def main():
     run_game(EngineCLI)
+
+
+if __name__ == "__main__":
+    main()
