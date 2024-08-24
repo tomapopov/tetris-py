@@ -172,37 +172,55 @@ class InterfacePygame(Interface):
         biggest_screen = sorted(pygame.display.get_desktop_sizes(), reverse=True)[0]
         self._block_size = biggest_screen[1] // self._BLOCK_SCALE_FACTOR
 
-        self._screen_width = (self._board.width + self._WIDTH_PADDING) * self._block_size
-        self._screen_height = (self._board.height + self._HEIGHT_PADDING) * self._block_size
-        self._screen_size = (self._screen_width, self._screen_height)
-
-        self._grid_width = self._board.width * self._block_size
-        self._grid_height = self._board.height * self._block_size
-        self._grid_top_left_x = int((self._screen_width - self._grid_width) * 0.50)
-        self._grid_top_left_y = (self._screen_height - self._grid_height) // 2
-
-        # Title
+        # FONTS
+        ## Title font
         title_label_font_size = int(self._block_size * 1.2)
         self._title_font = pygame.font.SysFont(self._font_name, title_label_font_size, bold=False)
-        self._title_label = self._title_font.render("TETRIS", 1, WHITE_COLOUR)
 
-        # Game over screen
-        self._game_over_label = self._title_font.render("GAME OVER", 1, RED_COLOUR)
 
-        # Subtitle font, used for score, next piece & pause labels
+        ## Subtitle font
         subtitle_label_font_size = int(title_label_font_size * 0.6)
         self._subtitle_font = pygame.font.SysFont(self._font_name, subtitle_label_font_size, bold=False)
 
-
-        # Text Font
+        ## Text Font
         text_font_size = int(title_label_font_size * 0.45)
         self._text_font = pygame.font.SysFont(self._font_name, text_font_size, bold=False)
 
-        # Info Section
+        # DIMENSIONS
+        self._section_width = self._board.width * self._block_size
+        self._section_height = self._board.height * self._block_size
+        self._section_horizontal_padding = 2 * self._block_size
+        self._section_vertical_padding = 4 * self._block_size
+        self._section_top_left_y = self._section_vertical_padding
+
+        ## Statistics section
+        self._stats_box_width = self._section_width
+        self._stats_box_height = self._section_height
+        self._stats_box_top_left_x = self._section_horizontal_padding
+        self._stats_box_top_left_y = self._section_top_left_y
+        self._stats_title = self._title_font.render("STATISTICS", 1, YELLOW_COLOUR)
+
+        ## Play grid section
+        self._grid_width = self._board.width * self._block_size
+        self._grid_height = self._section_height
+        self._grid_top_left_x = self._stats_box_top_left_x + self._stats_box_width + self._section_horizontal_padding
+        self._grid_top_left_y = self._section_top_left_y
+
+        ## Info Section
         self._info_box_width = self._grid_width
         self._info_box_height = self._grid_height
-        self._info_box_top_left_x = int(self._screen_width * 0.75 - self._info_box_width // 2)
-        self._info_box_top_left_y = self._grid_top_left_y
+        self._info_box_top_left_x = self._grid_top_left_x + self._grid_width + self._section_horizontal_padding
+        self._info_box_top_left_y = self._section_top_left_y
+
+
+        ## Screen Dimensions
+        self._screen_width = (self._section_width * 3) + 4 * self._section_horizontal_padding
+        # 1.5 vertical padding here for 1 at the top and 0.5 at the bottom of the screen (i.e. less space at the bottom)
+        self._screen_height = self._section_height + 1.5 * self._section_vertical_padding
+        self._screen_size = (self._screen_width, self._screen_height)
+
+        # LABELS
+        self._title_label = self._title_font.render("TETRIS", 1, WHITE_COLOUR)
 
         self._next_piece_label = self._subtitle_font.render("NEXT PIECE", 1, WHITE_COLOUR)
 
@@ -210,12 +228,7 @@ class InterfacePygame(Interface):
         self._paused_label_top_left_x = self._info_box_top_left_x + self._info_box_width // 2 - self._paused_label.get_width() / 2
         self._paused_label_top_left_y = self._info_box_top_left_y + self._info_box_height - 1.5 * self._block_size
 
-        # Statistics screen
-        self._stats_box_width = self._grid_width
-        self._stats_box_height = self._grid_height
-        self._stats_box_top_left_x = int(self._screen_width * 0.25 - self._stats_box_width // 2)
-        self._stats_box_top_left_y = self._grid_top_left_y
-        self._stats_title = self._title_font.render("STATISTICS", 1, YELLOW_COLOUR)
+        self._game_over_label = self._title_font.render("GAME OVER", 1, RED_COLOUR)
 
         # Set screen
         self._screen = pygame.display.set_mode(self._screen_size)
