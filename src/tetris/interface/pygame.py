@@ -10,6 +10,7 @@ from ..piece import PIECE_COLOURS_RGB, SHAPE_POSSIBILITIES
 from ..point import MinoPoint
 
 
+# Unused class at the moment
 class PygameButton:
 
     def __init__(
@@ -126,6 +127,8 @@ class InterfacePygame(Interface):
         self._paused_label_top_left_y = self._info_box_top_left_y + self._info_box_height - 1.5 * self._block_size
 
         self._game_over_label = self._title_font.render("GAME OVER", 1, RED_COLOUR)
+
+        # Unused button logic at the moment
         # self._restart_button = PygameButton(
         #     (int(self._screen_width * 0.5), int(self._screen_height * 0.8)),
         #     YELLOW_COLOUR,
