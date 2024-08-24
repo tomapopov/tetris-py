@@ -2,15 +2,17 @@
 # For details: https://github.com/tomapopov/tetris-py/blob/main/NOTICE
 
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Type
 import pygame
 
 from .board import Board
 from .direction import Direction
 from .command import Command
-from .piece import Piece, PieceGenerator
-from .interface import InterfacePygame, Interface, InterfaceCLI
-from .scorer import Scorer
+from .piece import PieceGenerator
+from .interface.abstract import Interface
+from .interface.cli import InterfaceCLI
+from .interface.pygame import InterfacePygame
+from .scorer import Scorer, SimpleScorer
 from .statistics import Statistics
 
 _LOOP_SLEEP_TIME_MS = 20
@@ -41,14 +43,18 @@ class Engine(EngineAbstract):
     """
     Generalized engine class used in both versions of the game
     """
-    def __init__(self, board: Board, scorer: Scorer, interface: Interface, piece_generator: PieceGenerator, statistics: Statistics):
-        self._board = board
-        self._piece_generator = piece_generator
-        self._interface = interface
-        self._active_piece: Optional[Piece] = None
-        self._scorer = scorer
-        self._statistics = statistics
+    def __init__(self):
+        self._board: Board = Board()
+        self._scorer: Scorer = SimpleScorer()
+        self._piece_generator: PieceGenerator = PieceGenerator()
+        self._statistics: Statistics = Statistics()
+        self._interface = self._create_interface()
 
+    def _new_game(self):
+        self._board.reset()
+        self._scorer.reset()
+        self._piece_generator.reset()
+        self._statistics.reset()
 
     def run(self) -> None:
         """
@@ -56,10 +62,16 @@ class Engine(EngineAbstract):
         :return: None
         """
         self._interface.show_instructions()
-        self._run_main_loop()
-        self._wait(500)
-        self._run_game_over_loop()
-        self._interface.quit()
+        while True:
+            self._run_main_loop()
+            self._wait(500)
+            cmd = self._run_game_over_loop()
+            if cmd == Command.QUIT:
+                self._interface.quit()
+                return
+            elif cmd == Command.RESTART:
+                self._new_game()
+                self._wait(500)
 
     def _run_game_over_loop(self):
         """
@@ -67,13 +79,13 @@ class Engine(EngineAbstract):
         :return: None
         """
         self._interface.draw_game_over()
-        show_game_over = True
-        while show_game_over:
+        run = True
+        possible_cmds = (Command.QUIT, Command.RESTART)
+        while run:
             cmds = self._interface.get_input()
             for cmd in cmds:
-                if cmd == Command.QUIT:
-                    show_game_over = False
-                    break
+                if cmd in possible_cmds:
+                    return cmd
             self._wait(_LOOP_SLEEP_TIME_MS)
 
     def _run_main_loop(self) -> None:
@@ -148,6 +160,7 @@ class Engine(EngineAbstract):
             # Pause to share CPU - not sure if/how much it's needed, haven't
             # looked into the CPU loads yet...
             self._wait(_LOOP_SLEEP_TIME_MS)
+        self._stop_downward_movement()
 
     def _new_active_piece(self) -> None:
         """
@@ -183,19 +196,36 @@ class Engine(EngineAbstract):
         """
         ...
 
+    def _create_interface(self) -> Interface:
+        return self._interface_class()(self._board, self._scorer, self._piece_generator, self._statistics)
+
+    @abstractmethod
+    def _interface_class(self) -> Type[Interface]:
+        ...
+
+    @abstractmethod
+    def _stop_downward_movement(self) -> None:
+        """
+        Stop the automatic downward movement we started
+        """
+        ...
+
 
 class EnginePygame(Engine):
     _FALL_DELAY = 750
-
-    def __init__(self, board: Board, scorer: Scorer, piece_generator: PieceGenerator, statistics: Statistics):
-        super().__init__(board, scorer, InterfacePygame(board, scorer, piece_generator, statistics), piece_generator, statistics)
+    _FALL_DELAY_STEP = 50
+    _MIN_FALL_DELAY = 200
 
     def _set_downward_movement(self) -> None:
         """
         Starts the automatic downward movement of pieces, so they fall as time passes
         :return: None
         """
-        pygame.time.set_timer(pygame.event.Event(pygame.KEYDOWN, {"key": pygame.K_DOWN}), self._FALL_DELAY - self._scorer.level * 50)
+        pygame.time.set_timer(
+            pygame.event.Event(pygame.KEYDOWN, {"key": pygame.K_DOWN}),
+            max(self._FALL_DELAY - self._scorer.level * self._FALL_DELAY_STEP, self._MIN_FALL_DELAY)
+        )
+
 
     def _wait(self, time_ms: int) -> None:
         """
@@ -220,11 +250,16 @@ class EnginePygame(Engine):
                     return True
             pygame.time.wait(50)
 
+    def _interface_class(self) -> Type[Interface]:
+        return InterfacePygame
+
+    def _stop_downward_movement(self) -> None:
+        pygame.time.set_timer(
+            pygame.event.Event(pygame.KEYDOWN, {"key": pygame.K_DOWN}),
+            0,
+        )
 
 class EngineCLI(Engine):
-
-    def __init__(self, board: Board, scorer: Scorer, piece_generator: PieceGenerator, statistics: Statistics):
-        super().__init__(board, scorer, InterfaceCLI(board, scorer, piece_generator, statistics), piece_generator, statistics)
 
     def _set_downward_movement(self) -> None:
         """
@@ -247,3 +282,9 @@ class EngineCLI(Engine):
         :return: True if quit command was input during pause, False otherwise
         """
         return False
+
+    def _interface_class(self) -> Type[Interface]:
+        return InterfaceCLI
+
+    def _stop_downward_movement(self) -> None:
+        pass

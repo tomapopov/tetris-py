@@ -11,9 +11,7 @@ class Scorer(ABC):
     """
 
     def __init__(self):
-        self._score = 0
-        self._level = 0
-        self._lines_cleared = 0
+        self.reset()
 
     def add_to_score(self, lines_cleared: int) -> bool:
         """
@@ -42,6 +40,11 @@ class Scorer(ABC):
     def lines_cleared(self) -> int:
         return self._lines_cleared
 
+    def reset(self) -> None:
+        self._score = 0
+        self._level = 0
+        self._lines_cleared = 0
+
 
 class SimpleScorer(Scorer):
     """
@@ -64,4 +67,3 @@ class SimpleScorer(Scorer):
         if changed:
             self._level = new_level
         return changed
-

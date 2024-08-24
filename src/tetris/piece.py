@@ -319,3 +319,6 @@ class PieceGenerator:
         ret = self._next_piece_type
         self._next_piece_type = new_piece_type()
         return ret
+
+    def reset(self):
+        self.generate_new_piece_type()

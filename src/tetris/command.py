@@ -14,6 +14,7 @@ class Command(Enum):
     QUIT = 6
     HELP = 7
     PAUSE = 8
+    RESTART = 9
 
     @classmethod
     def from_char(cls, char: str):
@@ -45,6 +46,7 @@ class Command(Enum):
             pygame.K_q: cls.QUIT,
             pygame.K_h: cls.HELP,
             pygame.K_p: cls.PAUSE,
+            pygame.K_r: cls.RESTART,
         }
         if key not in mapping:
             raise ValueError(f"Unsupported pygame key: {key}")

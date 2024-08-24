@@ -35,9 +35,5 @@ def parse_args() -> argparse.Namespace:
 
 def run_game(engine_cls: Type[Union[EngineCLI, EnginePygame]]):
     parsed = parse_args()
-    board = Board(20, 10)
-    scorer = SimpleScorer()
-    piece_generator = PieceGenerator()
-    statistics = Statistics()
-    engine = engine_cls(board, scorer, piece_generator, statistics)
+    engine = engine_cls()
     engine.run()

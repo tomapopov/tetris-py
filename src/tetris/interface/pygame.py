@@ -1,153 +1,49 @@
-# Licensed under the Apache License: http://www.apache.org/licenses/LICENSE-2.0
-# For details: https://github.com/tomapopov/tetris-py/blob/main/NOTICE
-
-from abc import ABC, abstractmethod
-from typing import List
+from typing import Tuple, List
 
 import pygame
 
-from .board import Board
-from .colours import BLACK_COLOUR, GREY_COLOUR, RED_COLOUR, WHITE_COLOUR, ORANGE_COLOUR, YELLOW_COLOUR, DARK_GREY_COLOUR
-from .piece import PIECE_COLOURS_RGB, PieceGenerator, SHAPE_POSSIBILITIES
-from .command import Command
-from .scorer import Scorer
-from .point import MinoPoint
-from .statistics import Statistics
+from ..colours import YELLOW_COLOUR, WHITE_COLOUR, ORANGE_COLOUR, RED_COLOUR, DARK_GREY_COLOUR, BLACK_COLOUR, \
+    GREY_COLOUR
+from ..command import Command
+from .abstract import Interface
+from ..piece import PIECE_COLOURS_RGB, SHAPE_POSSIBILITIES
+from ..point import MinoPoint
 
 
-class Interface(ABC):
+class PygameButton:
 
-    def __init__(self, board: Board, scorer: Scorer, piece_generator: PieceGenerator,  statistics: Statistics):
-        self._board = board
-        self._scorer = scorer
-        self._piece_generator = piece_generator
-        self._statistics = statistics
+    def __init__(
+        self,
+        position: Tuple[int, int],
+        colour: Tuple,
+        hover_colour: Tuple,
+        text: pygame.Surface,
+        enabled: bool = True,
+        border_width: int = 2,
+        border_radius: int = 5,
+    ):
+        self._text = text
+        self._position = position
+        self._colour = colour
+        self._hover_colour = hover_colour
+        self._enabled = enabled
+        self._width = text.get_width() * 1.3
+        self._height = text.get_height() * 1.5
+        button_horizontal_middle = self._position[0] + 0.5 * self._width
+        button_vertical_middle = self._position[1] + 0.5 * self._height
+        self._text_position = (
 
-    @abstractmethod
-    def draw_screen(self) -> None:
-        """
-        Draws the main gameplay screen
-        :return: None
-        """
-        ...
+            button_horizontal_middle - text.get_width() / 2,
+            button_vertical_middle - text.get_height() / 2,
+        )
+        self._rect = pygame.rect.Rect(*self._position, self._width, self._height)
+        self._border_width = border_width
+        self._border_radius = border_radius
 
-    @abstractmethod
-    def get_input(self) -> List[Command]:
-        """
-        Returns any commands the user has inputted
-        :return: list of commands
-        """
-        ...
-
-    @abstractmethod
-    def draw_game_over(self) -> None:
-        """
-        Draws the end of game screen
-        :return: None
-        """
-        ...
-
-    @abstractmethod
-    def show_instructions(self) -> None:
-        """
-        Shows the instructions to the player
-        :return: None
-        """
-        ...
-
-    @abstractmethod
-    def quit(self) -> None:
-        """
-        Ends the session
-        :return: None
-        """
-        ...
-
-    @abstractmethod
-    def show_paused(self) -> None:
-        """
-        Shows the user that the game is paused
-        :return: None
-        """
-        ...
-
-
-class InterfaceCLI(Interface):
-    _INSTRUCTIONS = """
-Welcome to the tetris game. You will be prompted for a command at each step.
-The possible commands are:
-    1. 'L'  -> Move piece left
-    2. 'R'  -> Move piece right
-    3. 'D'  -> Move piece down
-    4. 'DD' -> Move piece as far down as possible
-    5. 'U'  -> Rotate piece 90 degrees clockwise
-    6. 'Q'  -> Quit
-    7. 'H'  -> Bring up this message again
-"""
-
-    def draw_screen(self) -> None:
-        """
-        Draws the main gameplay screen
-        :return: None
-        """
-        print()
-        print(f"SCORE: {self._scorer.score}")
-        print(f"LINES CLEARED: {self._scorer.lines_cleared}")
-        counts = self._statistics.shape_counts.copy()
-        total = sum(counts.values())
-        count_strs = [
-            (f"{shape.letter}: {counts[shape.letter]} "
-             f"({round(0 if total == 0 else counts[shape.letter] / total * 100, 1)}%)")
-            for shape in SHAPE_POSSIBILITIES
-        ]
-        print(f"STATISTICS: {', '.join(count_strs)}")
-        print("Board state:")
-        print(self._board)
-        print()
-        print(f"Next Piece: {self._piece_generator.next_piece_type.letter}")
-
-    def get_input(self) -> List[Command]:
-        """
-        Returns any commands the user has inputted
-        :return: list of commands
-        """
-        try:
-            cmd = Command.from_char(input("Input a command [L/R/D/DD/U/Q/H]: "))
-        except ValueError:
-            return []
-        else:
-            return [cmd]
-
-    def draw_game_over(self) -> None:
-        """
-        Draws the end of game screen
-        :return: None
-        """
-        print("GAME OVER")
-        print(f"FINAL SCORE: {self._scorer.score}")
-        print(f"LINES CLEARED: {self._scorer.lines_cleared}")
-        print(f"LEVEL: {self._scorer.level}")
-
-    def show_instructions(self) -> None:
-        """
-        Shows the instructions to the player
-        :return: None
-        """
-        print(self._INSTRUCTIONS)
-
-    def quit(self) -> None:
-        """
-        Ends the session
-        :return: None
-        """
-        print("Quitting...")
-
-    def show_paused(self) -> None:
-        """
-        Shows the user that the game is paused
-        :return: None
-        """
-        pass
+    def draw(self, surface: pygame.Surface) -> None:
+        pygame.draw.rect(surface, self._colour, self._rect, width=0, border_radius=self._border_radius)
+        pygame.draw.rect(surface, GREY_COLOUR, self._rect, width=self._border_width, border_radius=self._border_radius)  # border
+        surface.blit(self._text, self._text_position)
 
 
 class InterfacePygame(Interface):
@@ -169,6 +65,7 @@ class InterfacePygame(Interface):
         super().__init__(*args)
         # pygame setup
         pygame.init()
+        pygame.display.set_caption("Tetris")
         biggest_screen = sorted(pygame.display.get_desktop_sizes(), reverse=True)[0]
         self._block_size = biggest_screen[1] // self._BLOCK_SCALE_FACTOR
 
@@ -229,6 +126,16 @@ class InterfacePygame(Interface):
         self._paused_label_top_left_y = self._info_box_top_left_y + self._info_box_height - 1.5 * self._block_size
 
         self._game_over_label = self._title_font.render("GAME OVER", 1, RED_COLOUR)
+        # self._restart_button = PygameButton(
+        #     (int(self._screen_width * 0.5), int(self._screen_height * 0.8)),
+        #     YELLOW_COLOUR,
+        #     ORANGE_COLOUR,
+        #     self._text_font.render("RESTART", True, BLACK_COLOUR),
+        #     enabled=True,
+        #     border_width=2,
+        #     border_radius=5,
+        # )
+
 
         # Set screen
         self._screen = pygame.display.set_mode(self._screen_size)
@@ -243,6 +150,7 @@ class InterfacePygame(Interface):
         self._draw_play_grid()
         self._draw_info_section()
         self._draw_statistics_section()
+
         pygame.display.update()
 
     def _draw_play_grid(self):
@@ -279,8 +187,17 @@ class InterfacePygame(Interface):
         :return: None
         """
         self._screen.fill(BLACK_COLOUR)
-        self._draw_game_over_title()
-        self._draw_final_score()
+        # Title
+        self._screen.blit(
+            self._game_over_label,
+            (
+                self._screen_width / 2 - (self._game_over_label.get_width() / 2),
+                self._screen_height * 0.4
+            ),
+        )
+        self._draw_game_over_text()
+
+        # self._restart_button.draw(self._screen)
         pygame.display.update()
 
     def show_instructions(self) -> None:
@@ -522,37 +439,40 @@ class InterfacePygame(Interface):
                 )
             )
 
-    def _draw_game_over_title(self) -> None:
-        self._screen.blit(
-            self._game_over_label,
-            (
-                self._screen_width / 2 - (self._game_over_label.get_width() / 2),
-                self._screen_height * 0.4
-            ),
-        )
-
-    def _draw_final_score(self) -> None:
+    def _draw_game_over_text(self) -> None:
         score_label = self._subtitle_font.render(f"FINAL SCORE: {self._scorer.score}", 1, WHITE_COLOUR)
-        lines_label = self._subtitle_font.render(f"LINES CLEARED: {self._scorer.lines_cleared}", 1, WHITE_COLOUR)
-        level_label = self._subtitle_font.render(f"LEVEL: {self._scorer.level}", 1, WHITE_COLOUR)
-        self._screen.blit(
-            score_label,
-            (
+        score_label_pos = (
                 self._screen_width / 2 - (score_label.get_width() / 2),
                 self._screen_height * 0.5
-            ),
+            )
+        lines_label = self._subtitle_font.render(f"LINES CLEARED: {self._scorer.lines_cleared}", 1, WHITE_COLOUR)
+        lines_label_pos = (
+                self._screen_width / 2 - (lines_label.get_width() / 2),
+                score_label_pos[1] + score_label.get_height() * 1.5,
+            )
+        level_label = self._subtitle_font.render(f"LEVEL: {self._scorer.level}", 1, WHITE_COLOUR)
+        level_label_pos = (
+                self._screen_width / 2 - (level_label.get_width() / 2),
+                lines_label_pos[1] + lines_label.get_height() * 1.5,
+            )
+        self._screen.blit(
+            score_label,
+            score_label_pos,
         )
         self._screen.blit(
             lines_label,
-            (
-                self._screen_width / 2 - (lines_label.get_width() / 2),
-                self._screen_height * 0.5 + score_label.get_height() * 1.5,
-            ),
+            lines_label_pos,
         )
         self._screen.blit(
             level_label,
-            (
-                self._screen_width / 2 - (level_label.get_width() / 2),
-                self._screen_height * 0.5 + (lines_label.get_height() + score_label.get_height()) * 1.5,
-            ),
+            level_label_pos,
+        )
+        instrs = self._text_font.render(f"TO START A NEW GAME, PRESS 'R'. TO QUIT, PRESS 'Q'.", 1, YELLOW_COLOUR)
+        instrs_pos = (
+                self._screen_width / 2 - (instrs.get_width() / 2),
+                level_label_pos[1] + level_label.get_height() * 2,
+        )
+        self._screen.blit(
+            instrs,
+            instrs_pos,
         )

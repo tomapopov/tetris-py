@@ -17,8 +17,10 @@ class Board:
         # grid with 2 extra rows for generating new pieces at random at the top
         self._height = height + _ROW_PADDING
         self._width = width
-        self._grid: Grid = self._new_rows(self._height, width)
-        self._next_piece_type = piece.new_piece_type()
+        self.reset()
+
+    def reset(self) -> None:
+        self._grid: Grid = self._new_rows(self._height, self._width)
 
     def reached_top_row(self) -> bool:
         """
