@@ -306,6 +306,7 @@ class InterfacePygame(Interface):
         :return: None
         """
         pygame.display.quit()
+        pygame.quit()
 
     def _draw_title(self) -> None:
         self._screen.blit(
