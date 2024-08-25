@@ -118,6 +118,9 @@ class Engine(EngineAbstract):
                     need_to_refresh = run
                 elif cmd == Command.ROTATE:
                     self._active_piece.rotate()
+                elif cmd == Command.RESTART:
+                    # Don't do anything for now, prevents accidentally restarting mid-game
+                    pass
                 elif cmd == Command.MOVE_BOTTOM:
                     direction = Direction.DOWN
                     while True:
