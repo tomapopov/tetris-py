@@ -58,12 +58,10 @@ class Engine(EngineAbstract):
             cmd = self._run_game_over_loop()
             if cmd == Command.QUIT:
                 self._interface.quit()
-                print("quit interface")
                 break
             elif cmd == Command.RESTART:
                 self._new_game()
                 self._wait(500)
-        print("exiting run")
 
     def _run_game_over_loop(self):
         """
@@ -77,7 +75,6 @@ class Engine(EngineAbstract):
             cmds = self._interface.get_input()
             for cmd in cmds:
                 if cmd in possible_cmds:
-                    print(f"got cmd {cmd} in game over")
                     return cmd
             self._wait(_LOOP_SLEEP_TIME_MS)
 
