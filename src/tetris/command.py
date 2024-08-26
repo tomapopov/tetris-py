@@ -37,17 +37,19 @@ class Command(Enum):
 
     @classmethod
     def from_pygame_key(cls, key: int):
-        mapping = {
-            pygame.K_LEFT: cls.MOVE_LEFT,
-            pygame.K_RIGHT: cls.MOVE_RIGHT,
-            pygame.K_DOWN: cls.MOVE_DOWN,
-            pygame.K_SPACE: cls.MOVE_BOTTOM,
-            pygame.K_UP: cls.ROTATE,
-            pygame.K_q: cls.QUIT,
-            pygame.K_h: cls.HELP,
-            pygame.K_p: cls.PAUSE,
-            pygame.K_r: cls.RESTART,
-        }
-        if key not in mapping:
+        if key not in pygame_key_mapping:
             raise ValueError(f"Unsupported pygame key: {key}")
-        return mapping[key]
+        return pygame_key_mapping[key]
+
+
+pygame_key_mapping = {
+    pygame.K_LEFT: Command.MOVE_LEFT,
+    pygame.K_RIGHT: Command.MOVE_RIGHT,
+    pygame.K_DOWN: Command.MOVE_DOWN,
+    pygame.K_SPACE: Command.MOVE_BOTTOM,
+    pygame.K_UP: Command.ROTATE,
+    pygame.K_q: Command.QUIT,
+    pygame.K_h: Command.HELP,
+    pygame.K_p: Command.PAUSE,
+    pygame.K_r: Command.RESTART,
+}

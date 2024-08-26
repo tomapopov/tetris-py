@@ -1,10 +1,11 @@
+import time
 from typing import Tuple, List
 
 import pygame
 
 from ..colours import YELLOW_COLOUR, WHITE_COLOUR, ORANGE_COLOUR, RED_COLOUR, DARK_GREY_COLOUR, BLACK_COLOUR, \
     GREY_COLOUR
-from ..command import Command
+from ..command import Command, pygame_key_mapping
 from .abstract import Interface
 from ..piece import PIECE_COLOURS_RGB, SHAPE_POSSIBILITIES
 from ..point import MinoPoint
@@ -62,6 +63,9 @@ class InterfacePygame(Interface):
         "P : Pause",
     ]
     _font_name = "freesans"
+    _holdable_keys = {pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT}
+    _hold_threshold_ms = 120
+
     def __init__(self, *args):
         super().__init__(*args)
         # pygame setup
@@ -139,6 +143,7 @@ class InterfacePygame(Interface):
         #     border_width=2,
         #     border_radius=5,
         # )
+        self._last_holdable_key_event_time = 0
 
 
         # Set screen
@@ -167,22 +172,24 @@ class InterfacePygame(Interface):
         Returns any commands the user has inputted
         :return: list of commands
         """
-        events = pygame.event.get()
+        key_states = pygame.key.get_pressed()
         cmds = []
+        events = pygame.event.get()
         for event in events:
             ev_type = event.type
             if ev_type == pygame.QUIT:
                 cmds.append(Command.QUIT)
                 break
-            elif ev_type == pygame.KEYDOWN:
-                try:
-                    cmd = Command.from_pygame_key(event.key)
-                except ValueError:
-                    continue
-                else:
-                    cmds.append(cmd)
-                    if cmd is Command.QUIT:
-                        break
+            elif ev_type == pygame.KEYDOWN and event.key in pygame_key_mapping:
+                cmds.append(Command.from_pygame_key(event.key))
+                if event.key in self._holdable_keys:
+                    self._last_holdable_key_event_time = time.time_ns()
+
+        for key in self._holdable_keys:
+            if key_states[key] and (time.time_ns() - self._last_holdable_key_event_time) * 1e-6 > self._hold_threshold_ms:
+                cmd = Command.from_pygame_key(key)
+                cmds.append(cmd)
+
         return cmds
 
     def draw_game_over(self) -> None:
