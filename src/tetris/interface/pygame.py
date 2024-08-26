@@ -65,7 +65,8 @@ class InterfacePygame(Interface):
     def __init__(self, *args):
         super().__init__(*args)
         # pygame setup
-        pygame.init()
+        pygame.display.init()
+        pygame.font.init()
         pygame.display.set_caption("Tetris")
         biggest_screen = sorted(pygame.display.get_desktop_sizes(), reverse=True)[0]
         self._block_size = biggest_screen[1] // self._BLOCK_SCALE_FACTOR
@@ -226,7 +227,7 @@ class InterfacePygame(Interface):
         :return: None
         """
         pygame.display.quit()
-        pygame.quit()
+        pygame.font.quit()
 
     def _draw_title(self) -> None:
         self._screen.blit(
