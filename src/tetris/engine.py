@@ -8,12 +8,11 @@ import pygame
 from .board import Board
 from .direction import Direction
 from .command import Command
-from .piece import PieceGenerator
-from .interface.abstract import Interface
-from .interface.cli import InterfaceCLI
-from .interface.pygame import InterfacePygame
+from .piece import PieceGenerator, Piece
+from .import interface
 from .scorer import Scorer, SimpleScorer
 from .statistics import Statistics
+from .interface import cli as interface_cli, pygame as interface_pygame
 
 _LOOP_SLEEP_TIME_MS = 20
 
@@ -189,11 +188,11 @@ class Engine(EngineAbstract):
         """
         ...
 
-    def _create_interface(self) -> Interface:
-        return self._interface_class()(self._board, self._scorer, self._piece_generator, self._statistics)
+    def _create_interface(self) -> "interface.Interface":
+        return self._interface_class()(self._board, self._scorer, self._piece_generator, self._statistics, self)
 
     @abstractmethod
-    def _interface_class(self) -> Type[Interface]:
+    def _interface_class(self) -> Type["interface.Interface"]:
         ...
 
     @abstractmethod
@@ -202,6 +201,10 @@ class Engine(EngineAbstract):
         Stop the automatic downward movement we started
         """
         ...
+
+    @property
+    def active_piece(self) -> Piece:
+        return self._active_piece
 
 
 class EnginePygame(Engine):
@@ -243,8 +246,8 @@ class EnginePygame(Engine):
                     return True
             pygame.time.wait(50)
 
-    def _interface_class(self) -> Type[Interface]:
-        return InterfacePygame
+    def _interface_class(self) -> Type["interface.Interface"]:
+        return interface_pygame.InterfacePygame
 
     def _stop_downward_movement(self) -> None:
         pygame.time.set_timer(
@@ -276,8 +279,8 @@ class EngineCLI(Engine):
         """
         return False
 
-    def _interface_class(self) -> Type[Interface]:
-        return InterfaceCLI
+    def _interface_class(self) -> Type["interface.Interface"]:
+        return interface_cli.InterfaceCLI
 
     def _stop_downward_movement(self) -> None:
         pass

@@ -106,14 +106,14 @@ class Piece(ABC):
         Checks if the piece can move down
         :return: True if it can shift downwards, False if not
         """
-        for col in self._columns:
+        for col in self.columns:
             lowest = self._lowest_block_in_col(col)
             if not self._board.space_below(lowest):
                 return False
         return True
 
     @property
-    def _columns(self) -> Set[int]:
+    def columns(self) -> Set[int]:
         """
         The columns taken up by all the blocks that make up the piece
         :return: set of integer columns

@@ -9,15 +9,16 @@ from ..piece import PieceGenerator
 from ..command import Command
 from ..scorer import Scorer
 from ..statistics import Statistics
-
+from .. import engine
 
 class Interface(ABC):
 
-    def __init__(self, board: Board, scorer: Scorer, piece_generator: PieceGenerator,  statistics: Statistics):
+    def __init__(self, board: Board, scorer: Scorer, piece_generator: PieceGenerator,  statistics: Statistics, engine: "engine.Engine"):
         self._board = board
         self._scorer = scorer
         self._piece_generator = piece_generator
         self._statistics = statistics
+        self._engine = engine
 
     @abstractmethod
     def draw_screen(self) -> None:

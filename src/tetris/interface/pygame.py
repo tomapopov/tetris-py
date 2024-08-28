@@ -7,9 +7,10 @@ from ..colours import YELLOW_COLOUR, WHITE_COLOUR, ORANGE_COLOUR, RED_COLOUR, DA
     GREY_COLOUR
 from ..command import Command, pygame_key_mapping
 from .abstract import Interface
-from ..piece import PIECE_COLOURS_RGB, SHAPE_POSSIBILITIES
+from ..piece import PIECE_COLOURS_RGB, SHAPE_POSSIBILITIES, Piece
 from ..point import MinoPoint
 from ..board import Board
+from .. import engine
 
 
 class PlayGrid:
@@ -20,6 +21,8 @@ class PlayGrid:
         board: Board,
         block_size: float,
         surface: pygame.Surface,
+        engine: "engine.Engine",
+
     ):
         self._position = position
         self._board = board
@@ -27,11 +30,13 @@ class PlayGrid:
         self._surface = surface
         self._width = self._board.width * self._block_size
         self._height = self._board.height * self._block_size
+        self._engine = engine
 
     def draw(self) -> None:
         self._draw_tetriminoes()
         self._draw_grid_lines()
         self._draw_border()
+        self._draw_active_piece_highlights()
 
     def _draw_tetriminoes(self):
         sx, sy = self._position
@@ -68,6 +73,27 @@ class PlayGrid:
     def _draw_border(self) -> None:
         sx, sy = self._position
         pygame.draw.rect(surface=self._surface, color=RED_COLOUR, rect=(sx, sy, self._width, self._height), width=2)
+
+    def _draw_active_piece_highlights(self):
+        active_piece: Piece = self._engine.active_piece
+        cols = active_piece.columns
+        rows = active_piece.rows
+        min_col = min(cols)
+        max_col = max(cols)
+        sx, sy = self._position
+        pygame.draw.line(
+            self._surface,
+            ORANGE_COLOUR,
+            (sx + min_col * self._block_size, sy),
+            (sx + min_col * self._block_size, sy + self._height),
+        )  # vertical line
+        pygame.draw.line(
+            self._surface,
+            ORANGE_COLOUR,
+            (sx + (max_col+1) * self._block_size, sy),
+            (sx + (max_col+1) * self._block_size, sy + self._height),
+        )  # vertical line
+
 
 
 
@@ -136,7 +162,7 @@ class InterfacePygame(Interface):
         ## Play grid section
         grid_top_left_x = self._stats_box_top_left_x + self._stats_box_width + self._section_horizontal_padding
         grid_top_left_y = self._section_top_left_y
-        self._grid = PlayGrid((grid_top_left_x, grid_top_left_y), self._board, self._block_size, self._screen)
+        self._grid = PlayGrid((grid_top_left_x, grid_top_left_y), self._board, self._block_size, self._screen, self._engine)
 
 
         ## Info Section
