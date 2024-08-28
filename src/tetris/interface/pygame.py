@@ -9,43 +9,66 @@ from ..command import Command, pygame_key_mapping
 from .abstract import Interface
 from ..piece import PIECE_COLOURS_RGB, SHAPE_POSSIBILITIES
 from ..point import MinoPoint
+from ..board import Board
 
 
-# Unused class at the moment
-class PygameButton:
+class PlayGrid:
 
     def __init__(
         self,
         position: Tuple[int, int],
-        colour: Tuple,
-        hover_colour: Tuple,
-        text: pygame.Surface,
-        enabled: bool = True,
-        border_width: int = 2,
-        border_radius: int = 5,
+        board: Board,
+        block_size: float,
+        surface: pygame.Surface,
     ):
-        self._text = text
         self._position = position
-        self._colour = colour
-        self._hover_colour = hover_colour
-        self._enabled = enabled
-        self._width = text.get_width() * 1.3
-        self._height = text.get_height() * 1.5
-        button_horizontal_middle = self._position[0] + 0.5 * self._width
-        button_vertical_middle = self._position[1] + 0.5 * self._height
-        self._text_position = (
+        self._board = board
+        self._block_size = block_size
+        self._surface = surface
+        self._width = self._board.width * self._block_size
+        self._height = self._board.height * self._block_size
 
-            button_horizontal_middle - text.get_width() / 2,
-            button_vertical_middle - text.get_height() / 2,
-        )
-        self._rect = pygame.rect.Rect(*self._position, self._width, self._height)
-        self._border_width = border_width
-        self._border_radius = border_radius
+    def draw(self) -> None:
+        self._draw_tetriminoes()
+        self._draw_grid_lines()
+        self._draw_border()
 
-    def draw(self, surface: pygame.Surface) -> None:
-        pygame.draw.rect(surface, self._colour, self._rect, width=0, border_radius=self._border_radius)
-        pygame.draw.rect(surface, GREY_COLOUR, self._rect, width=self._border_width, border_radius=self._border_radius)  # border
-        surface.blit(self._text, self._text_position)
+    def _draw_tetriminoes(self):
+        sx, sy = self._position
+        for i in range(self._board.height):
+            for j in range(self._board.width):
+                pygame.draw.rect(
+                    surface=self._surface,
+                    color=PIECE_COLOURS_RGB[self._board.value_at(i, j)],
+                    rect=(sx + j * self._block_size, sy + i * self._block_size, self._block_size, self._block_size),
+                    width=0,
+                )
+
+    def _draw_grid_lines(self) -> None:
+        """
+        Draws the grey grid lines that we see
+        :return: None
+        """
+        sx, sy = self._position
+        for i in range(self._board.height):
+            pygame.draw.line(
+                self._surface,
+                GREY_COLOUR,
+                (sx, sy + i * self._block_size),
+                (sx + self._width - 1, sy + i * self._block_size),
+            )  # horizontal lines
+            for j in range(self._board.width):
+                pygame.draw.line(
+                    self._surface,
+                    GREY_COLOUR,
+                    (sx + j * self._block_size, sy),
+                    (sx + j * self._block_size, sy + self._height - 1),
+                )  # vertical line
+
+    def _draw_border(self) -> None:
+        sx, sy = self._position
+        pygame.draw.rect(surface=self._surface, color=RED_COLOUR, rect=(sx, sy, self._width, self._height), width=2)
+
 
 
 class InterfacePygame(Interface):
@@ -96,6 +119,13 @@ class InterfacePygame(Interface):
         self._section_vertical_padding = 4 * self._block_size
         self._section_top_left_y = self._section_vertical_padding
 
+        ## Screen Dimensions
+        self._screen_width = (self._section_width * 3) + 4 * self._section_horizontal_padding
+        # 1.5 vertical padding here for 1 at the top and 0.5 at the bottom of the screen (i.e. less space at the bottom)
+        self._screen_height = self._section_height + 1.5 * self._section_vertical_padding
+        self._screen_size = (self._screen_width, self._screen_height)
+        self._screen = pygame.display.set_mode(self._screen_size)
+
         ## Statistics section
         self._stats_box_width = self._section_width
         self._stats_box_height = self._section_height
@@ -104,23 +134,16 @@ class InterfacePygame(Interface):
         self._stats_title = self._title_font.render("STATISTICS", 1, YELLOW_COLOUR)
 
         ## Play grid section
-        self._grid_width = self._board.width * self._block_size
-        self._grid_height = self._section_height
-        self._grid_top_left_x = self._stats_box_top_left_x + self._stats_box_width + self._section_horizontal_padding
-        self._grid_top_left_y = self._section_top_left_y
+        grid_top_left_x = self._stats_box_top_left_x + self._stats_box_width + self._section_horizontal_padding
+        grid_top_left_y = self._section_top_left_y
+        self._grid = PlayGrid((grid_top_left_x, grid_top_left_y), self._board, self._block_size, self._screen)
+
 
         ## Info Section
-        self._info_box_width = self._grid_width
-        self._info_box_height = self._grid_height
-        self._info_box_top_left_x = self._grid_top_left_x + self._grid_width + self._section_horizontal_padding
+        self._info_box_width = self._section_width
+        self._info_box_height = self._section_height
+        self._info_box_top_left_x = grid_top_left_x + self._section_width + self._section_horizontal_padding
         self._info_box_top_left_y = self._section_top_left_y
-
-
-        ## Screen Dimensions
-        self._screen_width = (self._section_width * 3) + 4 * self._section_horizontal_padding
-        # 1.5 vertical padding here for 1 at the top and 0.5 at the bottom of the screen (i.e. less space at the bottom)
-        self._screen_height = self._section_height + 1.5 * self._section_vertical_padding
-        self._screen_size = (self._screen_width, self._screen_height)
 
         # LABELS
         self._title_label = self._title_font.render("TETRIS", 1, WHITE_COLOUR)
@@ -132,22 +155,7 @@ class InterfacePygame(Interface):
         self._paused_label_top_left_y = self._info_box_top_left_y + self._info_box_height - 1.5 * self._block_size
 
         self._game_over_label = self._title_font.render("GAME OVER", 1, RED_COLOUR)
-
-        # Unused button logic at the moment
-        # self._restart_button = PygameButton(
-        #     (int(self._screen_width * 0.5), int(self._screen_height * 0.8)),
-        #     YELLOW_COLOUR,
-        #     ORANGE_COLOUR,
-        #     self._text_font.render("RESTART", True, BLACK_COLOUR),
-        #     enabled=True,
-        #     border_width=2,
-        #     border_radius=5,
-        # )
         self._last_holdable_key_event_time = 0
-
-
-        # Set screen
-        self._screen = pygame.display.set_mode(self._screen_size)
 
     def draw_screen(self) -> None:
         """
@@ -156,16 +164,11 @@ class InterfacePygame(Interface):
         """
         self._screen.fill(DARK_GREY_COLOUR)
         self._draw_title()
-        self._draw_play_grid()
+        self._grid.draw()
         self._draw_info_section()
         self._draw_statistics_section()
 
         pygame.display.update()
-
-    def _draw_play_grid(self):
-        self._draw_tetriminoes()
-        self._draw_grid_lines()
-        self._draw_border()
 
     def get_input(self) -> List[Command]:
         """
@@ -208,7 +211,6 @@ class InterfacePygame(Interface):
         )
         self._draw_game_over_text()
 
-        # self._restart_button.draw(self._screen)
         pygame.display.update()
 
     def show_instructions(self) -> None:
@@ -244,45 +246,6 @@ class InterfacePygame(Interface):
                 self._block_size,
             ),
         )
-
-    def _draw_tetriminoes(self):
-        sx = self._grid_top_left_x
-        sy = self._grid_top_left_y
-        for i in range(self._board.height):
-            for j in range(self._board.width):
-                pygame.draw.rect(
-                    surface=self._screen,
-                    color=PIECE_COLOURS_RGB[self._board.value_at(i, j)],
-                    rect=(sx + j * self._block_size, sy + i * self._block_size, self._block_size, self._block_size),
-                    width=0,
-                )
-
-    def _draw_grid_lines(self) -> None:
-        """
-        Draws the grey grid lines that we see
-        :return: None
-        """
-        sx = self._grid_top_left_x
-        sy = self._grid_top_left_y
-        for i in range(self._board.height):
-            pygame.draw.line(
-                self._screen,
-                GREY_COLOUR,
-                (sx, sy + i * self._block_size),
-                (sx + self._grid_width - 1, sy + i * self._block_size),
-            )  # horizontal lines
-            for j in range(self._board.width):
-                pygame.draw.line(
-                    self._screen,
-                    GREY_COLOUR,
-                    (sx + j * self._block_size, sy),
-                    (sx + j * self._block_size, sy + self._grid_height - 1),
-                )  # vertical line
-
-    def _draw_border(self) -> None:
-        sx = self._grid_top_left_x
-        sy = self._grid_top_left_y
-        pygame.draw.rect(surface=self._screen, color=RED_COLOUR, rect=(sx, sy, self._grid_width, self._grid_height), width=2)
 
     def show_paused(self) -> None:
         """
