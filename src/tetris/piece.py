@@ -19,8 +19,7 @@ from .colours import (
     BLUE_COLOUR,
     PURPLE_COLOUR,
 )
-from .point import Point, MinoPoint
-
+from .point import Point, MinoPoint, rotate_point_90
 
 PIECE_COLOURS_ANSI = [
     "\033[37m{}\033[00m",  # white, for empty spaces
@@ -265,33 +264,6 @@ class ZPiece(Piece):
         ]
         centre = points[2]
         return points, Point(centre.x, centre.y)
-
-
-def rotate_point_90(p: MinoPoint, centre: Point) -> MinoPoint:
-    """
-    Rotates a point about the centre through 90 degrees
-    :param p: the coordinate point
-    :return: a new point constructed by rotating the given point
-    """
-
-    # Shift point to origin
-    x = p.x - centre.x
-    y = p.y - centre.y
-
-    cos_angle = 0
-    sin_angle = 1
-    # Apply transformation
-    new_x = x * cos_angle - y * sin_angle
-    new_y = x * sin_angle + y * cos_angle
-
-    # Shift back to original coordinates
-    new_x += centre.x
-    new_y += centre.y
-
-    if new_x == p.x and new_y == p.y:
-        # Don't create a whole new object for the same point
-        return p
-    return MinoPoint(int(new_x), int(new_y))
 
 
 SHAPE_POSSIBILITIES = [IPiece, ZPiece, LPiece, JPiece, SPiece, TPiece, OPiece]

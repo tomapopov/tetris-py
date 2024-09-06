@@ -6,8 +6,8 @@ import pytest
 
 from src.tetris.board import Board
 from src.tetris.direction import Direction
-from src.tetris.piece import IPiece, TPiece, ZPiece, SPiece, OPiece, LPiece, JPiece, Piece, rotate_point_90
-from src.tetris.point import MinoPoint, Point
+from src.tetris.piece import IPiece, TPiece, ZPiece, SPiece, OPiece, LPiece, JPiece, Piece
+from src.tetris.point import MinoPoint, Point, rotate_point_90
 
 
 @pytest.fixture
@@ -75,20 +75,3 @@ def test_rotate(pieces: List[Piece]):
             piece.rotate()
             assert set(piece.points) == expected_points
             assert expected_centre is piece._centre
-
-
-@pytest.mark.parametrize("mino_point, centre, expected", [
-    (MinoPoint(1, 0), Point(1, 0), MinoPoint(1, 0)),
-
-    (MinoPoint(1, 0), Point(0, 0), MinoPoint(0, -1)),
-    (MinoPoint(0, -1), Point(0, 0), MinoPoint(-1, 0)),
-    (MinoPoint(-1, 0), Point(0, 0), MinoPoint(0, 1)),
-    (MinoPoint(0, 1), Point(0, 0), MinoPoint(1, 0)),
-
-    (MinoPoint(3, 4), Point(1, 2), MinoPoint(2, 0)),
-    (MinoPoint(2, 0), Point(1, 2), MinoPoint(-1, 0)),
-    (MinoPoint(-1, 0), Point(1, 2), MinoPoint(-1, 4)),
-    (MinoPoint(-1, 4), Point(1, 2), MinoPoint(3, 4)),
-])
-def test_rotate_point_90(mino_point: MinoPoint, centre: Point, expected: MinoPoint):
-    return expected == rotate_point_90(mino_point, centre)
