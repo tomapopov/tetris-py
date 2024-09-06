@@ -5,12 +5,15 @@ from dataclasses import dataclass
 
 from .direction import Direction
 
+
 _DIRECTION_SHIFT = {
     Direction.DOWN: (0, 1),
     Direction.LEFT: (-1, 0),
     Direction.RIGHT: (1, 0),
 }
-@dataclass
+
+
+@dataclass(frozen=True)
 class Point:
     x: float
     y: float
@@ -26,7 +29,7 @@ class Point:
         return cls(self.x + x_shift, self.y + y_shift)
 
 
-@dataclass
+@dataclass(frozen=True)
 class MinoPoint(Point):
     x: int
     y: int

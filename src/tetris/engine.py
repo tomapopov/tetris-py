@@ -113,7 +113,7 @@ class Engine(EngineAbstract):
                 elif cmd == Command.MOVE_BOTTOM:
                     direction = Direction.DOWN
                     while True:
-                        shifted = self._active_piece.shift(direction)
+                        shifted = self._active_piece.move(direction)
                         if not shifted:
                             break
                     lines_cleared = self._board.clear_completed_rows(list(self._active_piece.rows))
@@ -130,7 +130,7 @@ class Engine(EngineAbstract):
                     break
                 else:
                     direction = Direction.from_command(cmd)
-                    self._active_piece.shift(direction)
+                    self._active_piece.move(direction)
                     if not self._active_piece.can_shift_down():
                         # Piece is now frozen in place
                         lines_cleared = self._board.clear_completed_rows(list(self._active_piece.rows))

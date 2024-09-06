@@ -75,7 +75,7 @@ class Piece(ABC):
         Rotates the piece on the board, if possible
         :return: None
         """
-        new_points = [_rotate_90(p, self._centre) for p in self._points]
+        new_points = [rotate_point_90(p, self._centre) for p in self._points]
         if self._board.can_shift(self, new_points):
             # TODO: add "wall kick" functionality to rotate + shift the piece
             #  when its going to hit a wall or the stack from rotating
@@ -84,7 +84,7 @@ class Piece(ABC):
             # No need to update centre here
             self._board.update_piece_location(self, old_points)
 
-    def shift(self, direction: Direction) -> bool:
+    def move(self, direction: Direction) -> bool:
         """
         Shifts the piece, if possible, in the given direction.
         :param direction: Direction
@@ -96,10 +96,10 @@ class Piece(ABC):
             self._points = new_points
             self._centre = self._centre.shift(direction)
             self._board.update_piece_location(self, old_points)
-            shifted = True
+            moved = True
         else:
-            shifted = False
-        return shifted
+            moved = False
+        return moved
 
     def can_shift_down(self) -> bool:
         """
@@ -180,7 +180,8 @@ class JPiece(Piece):
             MinoPoint(top_left.x + 1, next_row_idx),
             MinoPoint(top_left.x + 2, next_row_idx),
         ]
-        return points, points[2]
+        centre = points[2]
+        return points, Point(centre.x, centre.y)
 
 
 class LPiece(Piece):
@@ -196,7 +197,8 @@ class LPiece(Piece):
             MinoPoint(top_left.x - 1, next_row_idx),
             MinoPoint(top_left.x, next_row_idx),
         ]
-        return points, points[2]
+        centre = points[2]
+        return points, Point(centre.x, centre.y)
 
 
 class OPiece(Piece):
@@ -227,7 +229,8 @@ class SPiece(Piece):
             MinoPoint(top_left.x - 1, top_left.y + 1),
             MinoPoint(top_left.x, top_left.y + 1),
         ]
-        return points, points[3]
+        centre = points[3]
+        return points, Point(centre.x, centre.y)
 
 
 class TPiece(Piece):
@@ -244,7 +247,8 @@ class TPiece(Piece):
             MinoPoint(top_left.x, next_row_idx),
             MinoPoint(top_left.x + 1, next_row_idx),
         ]
-        return points, points[2]
+        centre = points[2]
+        return points, Point(centre.x, centre.y)
 
 
 class ZPiece(Piece):
@@ -259,12 +263,13 @@ class ZPiece(Piece):
             MinoPoint(top_left.x + 1, top_left.y + 1),
             MinoPoint(top_left.x + 2, top_left.y + 1),
         ]
-        return points, points[2]
+        centre = points[2]
+        return points, Point(centre.x, centre.y)
 
 
-def _rotate_90(p: MinoPoint, centre: Point) -> MinoPoint:
+def rotate_point_90(p: MinoPoint, centre: Point) -> MinoPoint:
     """
-    Rotates a point about the origin (0,0) through 90 degrees
+    Rotates a point about the centre through 90 degrees
     :param p: the coordinate point
     :return: a new point constructed by rotating the given point
     """
@@ -294,6 +299,7 @@ SHAPE_POSSIBILITIES = [IPiece, ZPiece, LPiece, JPiece, SPiece, TPiece, OPiece]
 
 def new_piece_type() -> Type[Piece]:
     return random.choice(SHAPE_POSSIBILITIES)
+
 
 class PieceGenerator:
     """
