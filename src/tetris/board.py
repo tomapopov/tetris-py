@@ -52,7 +52,7 @@ class Board:
         :return: True if possible to add, False otherwise
         """
         for p in piece.points:
-            if self._point_outside_grid(p) or self._at_point(p) > 0:
+            if self._point_outside_grid(p) or self.at_point(p) > 0:
                 return False
         return True
 
@@ -63,7 +63,7 @@ class Board:
         :return: None
         """
         for p in piece.points:
-            assert self._at_point(p) == 0
+            assert self.at_point(p) == 0
         for p in piece.points:
             self._set_at_point(p, piece.piece_index)
 
@@ -76,7 +76,7 @@ class Board:
         below_point = MinoPoint(point.x, point.y + 1)
         if self._point_outside_grid(below_point):
             return False
-        return self._at_point(below_point) == 0
+        return self.at_point(below_point) == 0
 
     @property
     def height(self) -> int:
@@ -105,6 +105,16 @@ class Board:
         """
         return self._grid[i + _ROW_PADDING][j]
 
+    def distance_to_stack(self, row: int, col: int):
+        highest = self._height - 1
+        dist = 0
+        for i in range(row + 1, self._height):
+            if self._grid[i][col] > 0:
+                return dist
+            dist += 1
+        return dist
+
+
     def _full_row(self, idx: int) -> bool:
         row = self._grid[idx]
         return all(x > 0 for x in row)
@@ -118,11 +128,11 @@ class Board:
 
     def _remove_piece(self, piece: "piece.Piece") -> None:
         for p in piece.points:
-            assert self._at_point(p) == piece.piece_index
+            assert self.at_point(p) == piece.piece_index
         for p in piece.points:
             self._set_at_point(p, 0)
 
-    def _at_point(self, p: MinoPoint) -> int:
+    def at_point(self, p: MinoPoint) -> int:
         return self._grid[p.y][p.x]
 
     def _set_at_point(self, p: MinoPoint, val: int) -> None:

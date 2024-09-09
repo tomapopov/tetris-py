@@ -76,23 +76,32 @@ class PlayGrid:
 
     def _draw_active_piece_highlights(self):
         active_piece: Piece = self._engine.active_piece
-        cols = active_piece.columns
-        rows = active_piece.rows
-        min_col = min(cols)
-        max_col = max(cols)
+        # cols = active_piece.columns
+        # # rows = active_piece.rows
+        # min_col = min(cols)
+        # max_col = max(cols)
         sx, sy = self._position
-        pygame.draw.line(
-            self._surface,
-            ORANGE_COLOUR,
-            (sx + min_col * self._block_size, sy),
-            (sx + min_col * self._block_size, sy + self._height),
-        )  # vertical line
-        pygame.draw.line(
-            self._surface,
-            ORANGE_COLOUR,
-            (sx + (max_col+1) * self._block_size, sy),
-            (sx + (max_col+1) * self._block_size, sy + self._height),
-        )  # vertical line
+        # pygame.draw.line(
+        #     self._surface,
+        #     ORANGE_COLOUR,
+        #     (sx + min_col * self._block_size, sy),
+        #     (sx + min_col * self._block_size, sy + self._height),
+        # )  # vertical line
+        # pygame.draw.line(
+        #     self._surface,
+        #     ORANGE_COLOUR,
+        #     (sx + (max_col+1) * self._block_size, sy),
+        #     (sx + (max_col+1) * self._block_size, sy + self._height),
+        # )  # vertical line
+
+        points = active_piece.lowest_possible_position()
+        for p in points:
+            pygame.draw.rect(
+                surface=self._surface,
+                color=PIECE_COLOURS_RGB[active_piece.piece_index],
+                rect=(sx + p.x * self._block_size, sy + (p.y - 2) * self._block_size, self._block_size, self._block_size),
+                width=2,
+            )
 
 
 
@@ -337,7 +346,6 @@ class InterfacePygame(Interface):
             (self._info_box_top_left_x + self._info_box_width, sec_separator_line_y),
         )
 
-
     def _draw_next_piece_section(self) -> None:
         label_top_left_x = self._info_box_top_left_x + self._info_box_width // 2 - self._next_piece_label.get_width() / 2
         label_top_left_y = self._info_box_top_left_y + self._block_size * 6
@@ -455,24 +463,12 @@ class InterfacePygame(Interface):
                 self._screen_width / 2 - (level_label.get_width() / 2),
                 lines_label_pos[1] + lines_label.get_height() * 1.5,
             )
-        self._screen.blit(
-            score_label,
-            score_label_pos,
-        )
-        self._screen.blit(
-            lines_label,
-            lines_label_pos,
-        )
-        self._screen.blit(
-            level_label,
-            level_label_pos,
-        )
+        self._screen.blit(score_label, score_label_pos)
+        self._screen.blit(lines_label, lines_label_pos)
+        self._screen.blit(level_label, level_label_pos)
         instrs = self._text_font.render(f"TO START A NEW GAME, PRESS 'R'. TO QUIT, PRESS 'Q'.", 1, YELLOW_COLOUR)
         instrs_pos = (
                 self._screen_width / 2 - (instrs.get_width() / 2),
                 level_label_pos[1] + level_label.get_height() * 2,
         )
-        self._screen.blit(
-            instrs,
-            instrs_pos,
-        )
+        self._screen.blit(instrs, instrs_pos)

@@ -110,11 +110,20 @@ class Piece(ABC):
         Checks if the piece can move down
         :return: True if it can shift downwards, False if not
         """
+        return all(self._board.space_below(self._lowest_block_in_col(col)) for col in self.columns)
+
+    def lowest_possible_position(self) -> List[MinoPoint]:
+        """
+        Calculates the lowest place that this piece could be on the boards
+        :return: A list of the points marking the tetrimino's lowest possible position
+        """
+        min_dist = float("inf")
         for col in self.columns:
-            lowest = self._lowest_block_in_col(col)
-            if not self._board.space_below(lowest):
-                return False
-        return True
+            row  = self._lowest_block_in_col(col).y
+            dist = self._board.distance_to_stack(row, col)
+            if dist < min_dist:
+                min_dist = dist
+        return [MinoPoint(p.x, p.y + min_dist) for p in self._points]
 
     @property
     def columns(self) -> Set[int]:

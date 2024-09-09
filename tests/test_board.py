@@ -34,9 +34,9 @@ def test_add_piece(board: Board, pieces: List[Piece]):
         assert board.can_add_piece(piece)
         board.add_piece(piece)
         for p in piece.points:
-            assert board._at_point(p) == piece.piece_index
+            assert board.at_point(p) == piece.piece_index
         assert not board.can_add_piece(piece)
         board._remove_piece(piece)
         for p in piece.points:
-            assert board._at_point(p) == 0
+            assert board.at_point(p) == 0
         assert board.can_add_piece(piece)
