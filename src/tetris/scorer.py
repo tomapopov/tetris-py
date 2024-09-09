@@ -48,8 +48,7 @@ class Scorer(ABC):
 
 class SimpleScorer(Scorer):
     """
-    A simple scorer that uses a single rule based on lines cleared,
-     without taking level into account.
+    A simple scorer that uses a single rule based on lines cleared multiplied by level
     """
     _LINES_TO_POINTS = {
         1: 40,
