@@ -35,7 +35,7 @@ class Engine(EngineAbstract):
     def __init__(self):
         self._board: Board = Board()
         self._scorer: Scorer = SimpleScorer()
-        self._piece_generator: PieceGenerator = PieceGenerator()
+        self._piece_generator: PieceGenerator = PieceGenerator(self._board)
         self._statistics: Statistics = Statistics()
         self._interface = self._create_interface()
 
@@ -160,7 +160,8 @@ class Engine(EngineAbstract):
         the bottom or the stack, and we need a new piece
         :return: None
         """
-        self._active_piece = self._board.new_piece(self._piece_generator.generate_new_piece_type())
+        self._active_piece = self._piece_generator.generate_new_piece()
+        self._board.add_piece(self._active_piece)
         self._statistics.inc_count(self._active_piece)
 
     @abstractmethod

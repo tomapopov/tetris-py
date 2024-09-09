@@ -30,20 +30,6 @@ class Board:
         top_playable_row = self._grid[_ROW_PADDING]
         return sum(top_playable_row) > 0
 
-    def new_piece(self, piece_cls: Type["piece.Piece"]) -> "piece.Piece":
-        """
-        Adds a new piece of the given type to the board
-        :param piece_cls: Piece type
-        :return: None
-        """
-        # TODO: use smarter logic for starting location of piece ?
-        # the +2 on the x and -3 on the y coordinates are used here to make sure all pieces can fit
-        # e.g 'I' piece has another 3 mino blocks on the right of the top left mino,
-        # and L has 2 on the left
-        top_left = MinoPoint(random.randint(0 + 2, self._width - 1 - 3), 0)
-        piece = piece_cls(self, top_left)
-        return piece
-
     def clear_completed_rows(self, rows: List[int]) -> int:
         """
         Checks if any rows are complete and removes them
@@ -59,32 +45,16 @@ class Board:
         self._grid = self._new_rows(removed, self._width) + self._grid
         return removed
 
-    def update_piece_location(self, piece: "piece.Piece", old_points: List[MinoPoint]) -> None:
+    def can_add_piece(self, piece: "piece.Piece"):
         """
-        Updates a piece, used in moving pieces
-        :param piece: the piece being moved
-        :param old_points: the old coordinates of its blocks
-        :return: None
-        """
-        for p in old_points:
-            self._set_at_point(p, 0)
-        self.add_piece(piece)
-
-    def can_shift(self, piece: "piece.Piece", new_points: List[MinoPoint]) -> bool:
-        """
-        Checks if a piece can be moved to the new points
+        Checks if a piece can be added to the board
         :param piece: the piece
-        :param new_points: new points to be moved into
-        :return: True if possible to move, False otherwise
+        :return: True if possible to add, False otherwise
         """
-        self._remove_piece(piece)
-        res = True
-        for p in new_points:
+        for p in piece.points:
             if self._point_outside_grid(p) or self._at_point(p) > 0:
-                res = False
-                break
-        self.add_piece(piece)
-        return res
+                return False
+        return True
 
     def add_piece(self, piece: "piece.Piece") -> None:
         """
@@ -103,10 +73,10 @@ class Board:
         :param point: the coordinate
         :return: True if empty space underneath, False otherwise
         """
-        below_y = point.y + 1
-        if self._point_outside_grid(MinoPoint(point.x, below_y)):
+        below_point = MinoPoint(point.x, point.y + 1)
+        if self._point_outside_grid(below_point):
             return False
-        return self._grid[below_y][point.x] == 0
+        return self._at_point(below_point) == 0
 
     @property
     def height(self) -> int:

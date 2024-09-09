@@ -6,10 +6,11 @@ from dataclasses import dataclass
 from .direction import Direction
 
 
-_DIRECTION_SHIFT = {
+DIRECTION_SHIFT = {
     Direction.DOWN: (0, 1),
     Direction.LEFT: (-1, 0),
     Direction.RIGHT: (1, 0),
+    Direction.UP: (0, -1),
 }
 
 
@@ -25,7 +26,7 @@ class Point:
         :return: the new point
         """
         cls = type(self)
-        x_shift, y_shift = _DIRECTION_SHIFT[direction]
+        x_shift, y_shift = DIRECTION_SHIFT[direction]
         return cls(self.x + x_shift, self.y + y_shift)
 
 
@@ -35,7 +36,7 @@ class MinoPoint(Point):
     y: int
 
 
-def rotate_point_90(p: MinoPoint, centre: Point) -> MinoPoint:
+def rotate_point_90(p: MinoPoint, centre: Point, reverse: bool = False) -> MinoPoint:
     """
     Rotates a point about the centre through 90 degrees
     :param p: the coordinate point
@@ -47,7 +48,7 @@ def rotate_point_90(p: MinoPoint, centre: Point) -> MinoPoint:
     y = p.y - centre.y
 
     cos_angle = 0
-    sin_angle = 1
+    sin_angle = -1 if reverse else 1
     # Apply transformation
     new_x = x * cos_angle - y * sin_angle
     new_y = x * sin_angle + y * cos_angle

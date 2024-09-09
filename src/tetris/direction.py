@@ -10,6 +10,7 @@ class Direction(Enum):
     DOWN = 1
     RIGHT = 2
     LEFT = 3
+    UP = 4
 
     @classmethod
     def from_command(cls, command: Command):
@@ -22,3 +23,12 @@ class Direction(Enum):
         if command not in mapping:
             raise ValueError(f"Command {command} cannot be mapped to a direction")
         return mapping[command]
+
+    @property
+    def opposite(self):
+        return {
+            Direction.DOWN: Direction.UP,
+            Direction.UP: Direction.DOWN,
+            Direction.LEFT: Direction.RIGHT,
+            Direction.RIGHT: Direction.LEFT,
+        }[self]

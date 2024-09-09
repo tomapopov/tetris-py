@@ -50,7 +50,6 @@ class Piece(ABC):
         self._points: List[MinoPoint] = ps
         self._centre: Point = c
         self._board = board
-        self._board.add_piece(self)
 
     @property
     def points(self) -> List[MinoPoint]:
@@ -74,31 +73,37 @@ class Piece(ABC):
         Rotates the piece on the board, if possible
         :return: None
         """
-        new_points = [rotate_point_90(p, self._centre) for p in self._points]
-        if self._board.can_shift(self, new_points):
-            # TODO: add "wall kick" functionality to rotate + shift the piece
-            #  when its going to hit a wall or the stack from rotating
-            old_points = self._points
-            self._points = new_points
-            # No need to update centre here
-            self._board.update_piece_location(self, old_points)
+        self._board._remove_piece(self)
+        self._rotate()
+        if self._board.can_add_piece(self):
+            self._board.add_piece(self)
+            return
+        # If the rotation isn't possible, undo it
+        self._rotate(reverse=True)
+        self._board.add_piece(self)
 
     def move(self, direction: Direction) -> bool:
         """
-        Shifts the piece, if possible, in the given direction.
+        Moves the piece in the given direction, if possible
         :param direction: Direction
         :return: True if the piece moved successfully, False otherwise
         """
-        new_points = [p.shift(direction) for p in self._points]
-        if self._board.can_shift(self, new_points):
-            old_points = self._points
-            self._points = new_points
-            self._centre = self._centre.shift(direction)
-            self._board.update_piece_location(self, old_points)
-            moved = True
-        else:
-            moved = False
-        return moved
+        self._board._remove_piece(self)
+        self._move(direction)
+        if self._board.can_add_piece(self):
+            self._board.add_piece(self)
+            return True
+        # If the move isn't possible, undo it
+        self._move(direction.opposite)
+        self._board.add_piece(self)
+        return False
+
+    def _move(self, direction: Direction) -> None:
+        self._points = [p.shift(direction) for p in self._points]
+        self._centre = self._centre.shift(direction)
+
+    def _rotate(self, reverse: bool = False):
+        self._points = [rotate_point_90(p, self._centre, reverse=reverse) for p in self._points]
 
     def can_shift_down(self) -> bool:
         """
@@ -278,8 +283,9 @@ class PieceGenerator:
     Simple class used to generate and show what the next piece shape will be
     """
 
-    def __init__(self):
+    def __init__(self, board: "board.Board"):
         self._next_piece_type = new_piece_type()
+        self._board = board
 
     @property
     def next_piece_type(self) -> Type[Piece]:
@@ -289,14 +295,29 @@ class PieceGenerator:
         """
         return self._next_piece_type
 
-    def generate_new_piece_type(self) -> Type[Piece]:
+    def _generate_new_piece_type(self) -> Type[Piece]:
         """
-        Generates a new next piece shape
+        Generates a new piece shape
         :return: The type of piece
         """
-        ret = self._next_piece_type
+        piece_cls = self._next_piece_type
         self._next_piece_type = new_piece_type()
-        return ret
+        return piece_cls
+
+    def generate_new_piece(self) -> Piece:
+        """
+        Generates a new piece
+        :return: The new piece
+        """
+        piece_cls = self._generate_new_piece_type()
+
+        # TODO: use smarter logic for starting location of piece ?
+        # the +2 on the x and -3 on the y coordinates are used here to make sure all pieces can fit
+        # e.g 'I' piece has another 3 mino blocks on the right of the top left mino,
+        # and L has 2 on the left
+        top_left = MinoPoint(random.randint(0 + 2, self._board.width - 1 - 3), 0)
+        piece = piece_cls(self._board, top_left)
+        return piece
 
     def reset(self):
-        self.generate_new_piece_type()
+        self._generate_new_piece_type()

@@ -23,15 +23,15 @@ def test_shift(point: Point, direction: Direction, expected: Point):
 @pytest.mark.parametrize("mino_point, centre, expected", [
     (MinoPoint(1, 0), Point(1, 0), MinoPoint(1, 0)),
 
-    (MinoPoint(1, 0), Point(0, 0), MinoPoint(0, -1)),
-    (MinoPoint(0, -1), Point(0, 0), MinoPoint(-1, 0)),
-    (MinoPoint(-1, 0), Point(0, 0), MinoPoint(0, 1)),
-    (MinoPoint(0, 1), Point(0, 0), MinoPoint(1, 0)),
+    (MinoPoint(1, 0), Point(0, 0), MinoPoint(0, 1)),
+    (MinoPoint(0, 1), Point(0, 0), MinoPoint(-1, 0)),
+    (MinoPoint(-1, 0), Point(0, 0), MinoPoint(0, -1)),
+    (MinoPoint(0, -1), Point(0, 0), MinoPoint(1, 0)),
 
-    (MinoPoint(3, 4), Point(1, 2), MinoPoint(2, 0)),
-    (MinoPoint(2, 0), Point(1, 2), MinoPoint(-1, 0)),
-    (MinoPoint(-1, 0), Point(1, 2), MinoPoint(-1, 4)),
-    (MinoPoint(-1, 4), Point(1, 2), MinoPoint(3, 4)),
+    (MinoPoint(3, 4), Point(1, 2), MinoPoint(-1, 4)),
+    (MinoPoint(-1, 4), Point(1, 2), MinoPoint(-1, 0)),
+    (MinoPoint(-1, 0), Point(1, 2), MinoPoint(3, 0)),
+    (MinoPoint(3, 0), Point(1, 2), MinoPoint(3, 4)),
 ])
 def test_rotate_point_90(mino_point: MinoPoint, centre: Point, expected: MinoPoint):
-    return expected == rotate_point_90(mino_point, centre)
+    assert rotate_point_90(mino_point, centre) == expected
