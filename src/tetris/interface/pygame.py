@@ -9,7 +9,7 @@ from ..command import Command, pygame_key_mapping
 from .abstract import Interface
 from ..piece import PIECE_COLOURS_RGB, SHAPE_POSSIBILITIES, Piece
 from ..point import MinoPoint
-from ..board import Board
+from ..board import Board, ROW_PADDING
 from .. import engine
 
 
@@ -96,12 +96,14 @@ class PlayGrid:
 
         points = active_piece.lowest_possible_position()
         for p in points:
-            pygame.draw.rect(
-                surface=self._surface,
-                color=PIECE_COLOURS_RGB[active_piece.piece_index],
-                rect=(sx + p.x * self._block_size, sy + (p.y - 2) * self._block_size, self._block_size, self._block_size),
-                width=2,
-            )
+            row_idx = (p.y - ROW_PADDING)
+            if row_idx >= 0:
+                pygame.draw.rect(
+                    surface=self._surface,
+                    color=PIECE_COLOURS_RGB[active_piece.piece_index],
+                    rect=(sx + p.x * self._block_size, sy + row_idx * self._block_size, self._block_size, self._block_size),
+                    width=2,
+                )
 
 
 

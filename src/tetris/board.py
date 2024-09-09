@@ -8,14 +8,14 @@ from . import piece
 from .point import MinoPoint
 
 Grid = List[List[int]]
-_ROW_PADDING = 2
+ROW_PADDING = 2
 
 
 class Board:
 
     def __init__(self, height: int = 20, width: int = 10):
         # grid with 2 extra rows for generating new pieces at random at the top
-        self._height = height + _ROW_PADDING
+        self._height = height + ROW_PADDING
         self._width = width
         self.reset()
 
@@ -27,7 +27,7 @@ class Board:
         Checks if stack has reached the top row
         :return: True if there are blocks in top row, False otherwise
         """
-        top_playable_row = self._grid[_ROW_PADDING]
+        top_playable_row = self._grid[ROW_PADDING]
         return sum(top_playable_row) > 0
 
     def clear_completed_rows(self, rows: List[int]) -> int:
@@ -86,7 +86,7 @@ class Board:
         """
         # subtract the row padding for the public height value used by other components, as this is a detail
         # internal to the board logic. Other components don't need to be aware of it.
-        return self._height - _ROW_PADDING
+        return self._height - ROW_PADDING
 
     @property
     def width(self) -> int:
@@ -103,7 +103,7 @@ class Board:
         :param j: column
         :return: integer code of the piece at that coordinate
         """
-        return self._grid[i + _ROW_PADDING][j]
+        return self._grid[i + ROW_PADDING][j]
 
     def distance_to_stack(self, row: int, col: int):
         highest = self._height - 1
@@ -143,7 +143,7 @@ class Board:
 
     def __str__(self) -> str:
         res = []
-        for row in self._grid[_ROW_PADDING:]:
+        for row in self._grid[ROW_PADDING:]:
             row_res = []
             for x in row:
                 assert isinstance(x, int)
