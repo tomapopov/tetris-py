@@ -73,6 +73,8 @@ class Board:
         :param point: the coordinate
         :return: True if empty space underneath, False otherwise
         """
+        if self._point_outside_grid(point):
+            return False
         below_point = MinoPoint(point.x, point.y + 1)
         if self._point_outside_grid(below_point):
             return False
@@ -106,7 +108,12 @@ class Board:
         return self._grid[i + ROW_PADDING][j]
 
     def distance_to_stack(self, row: int, col: int):
-        highest = self._height - 1
+        """
+        Calculates the vertical distance from the given coordinate to the top of the stack
+        :param row: the row index
+        :param col: the column index
+        :return: vertical distance
+        """
         dist = 0
         for i in range(row + 1, self._height):
             if self._grid[i][col] > 0:
